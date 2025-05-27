@@ -112,7 +112,10 @@
       return { x: cx + rx, y: cy + ry };
     }
 
+    let lastGpsPosition = null;
+
     function showGpsDot(lat, lng) {
+      lastGpsPosition = { lat, lng };
       const img = document.getElementById('carte');
       const dot = document.getElementById('gps-dot');
       const errorDiv = document.getElementById('gps-error');
@@ -169,6 +172,13 @@
     } else {
       showGpsError("La géolocalisation n'est pas supportée par ce navigateur.");
     }
+
+    // Recalcule la position du point GPS lors du redimensionnement de la fenêtre
+    window.addEventListener('resize', () => {
+      if (lastGpsPosition) {
+        showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng);
+      }
+    });
   </script>
 </body>
 </html>
