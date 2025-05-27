@@ -150,13 +150,6 @@
       dot.style.top = (offsetY + px.y - 10) + 'px';
     }
 
-    function showGpsError(msg) {
-      const errorDiv = document.getElementById('gps-error');
-      errorDiv.textContent = msg;
-      errorDiv.style.display = 'block';
-      document.getElementById('gps-dot').style.display = 'none';
-    }
-
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
         pos => {
@@ -164,12 +157,12 @@
           showGpsDot(latitude, longitude);
         },
         err => {
-          showGpsError("Erreur de géolocalisation : " + err.message);
+          console.log("Erreur de géolocalisation : " + err.message);
         },
         { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
       );
     } else {
-      showGpsError("La géolocalisation n'est pas supportée par ce navigateur.");
+      console.log("La géolocalisation n'est pas supportée par ce navigateur.");
     }
 
     // Recalcule la position du point GPS lors du redimensionnement de la fenêtre
