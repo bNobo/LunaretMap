@@ -70,32 +70,45 @@
     
     const gpsTopLeft = { lat: 43.64526958682147, lng: 3.8610944495057855 };
     const gpsBottomRight = { lat: 43.63856388483909, lng: 3.894421125886565 };
-    const gpsTopRight = { lat: gpsTopLeft.lat, lng: gpsBottomRight.lng };
+    const gpsTopRight = { lat: 43.64981194623201, lng: 3.8910884500021616 };
+    const gpsBottomLeft = { lat: 43.63402734120482, lng: 3.8642750642904535 };
 
-    // Calcul automatique de l'angle de rotation de la carte (en radians)
-    function computeMapRotationRad(topLeft, topRight) {
-      const dLat = topRight.lat - topLeft.lat;
-      const dLng = topRight.lng - topLeft.lng;
-      // Angle entre l'axe horizontal de l'image et la ligne topLeft->topRight
-      return Math.atan2(dLat, dLng); // ATTENTION: inversé car latitude = Y, longitude = X
-    }
-    const mapRotationRad = computeMapRotationRad(gpsTopLeft, gpsTopRight);
-    // Ces valeurs doivent être mesurées sur le terrain ou sur la carte !
-
+    // Nouvelle fonction de conversion GPS -> pixel utilisant les 4 coins (transformation bilinéaire)
     function gpsToPixel(lat, lng, imgWidth, imgHeight) {
-      // Conversion linéaire (à ajuster si la carte n'est pas parfaitement alignée)
-      let x = ((lng - gpsTopLeft.lng) / (gpsTopRight.lng - gpsTopLeft.lng)) * imgWidth;
-      let y = ((gpsTopLeft.lat - lat) / (gpsTopLeft.lat - gpsBottomRight.lat)) * imgHeight;
-      // Appliquer la rotation autour du centre de l'image
-      const cx = imgWidth / 2;
-      const cy = imgHeight / 2;
-      const dx = x - cx;
-      const dy = y - cy;
-      const cosA = Math.cos(-mapRotationRad); // sens inverse pour corriger
-      const sinA = Math.sin(-mapRotationRad);
-      const rx = dx * cosA - dy * sinA;
-      const ry = dx * sinA + dy * cosA;
-      return { x: cx + rx, y: cy + ry };
+      // Normalisation des coordonnées GPS dans le quadrilatère
+      // On résout :
+      //   gps = (1-u)*(1-v)*topLeft + u*(1-v)*topRight + (1-u)*v*bottomLeft + u*v*bottomRight
+      //   pour (u,v) dans [0,1]
+      // Méthode numérique simple (itérative)
+      function gpsQuadToXY(lat, lng) {
+        const EPS = 1e-6;
+        let u = 0.5, v = 0.5;
+        for (let iter = 0; iter < 10; iter++) {
+          // Interpolation bilinéaire
+          const lat_ = (1-u)*(1-v)*gpsTopLeft.lat + u*(1-v)*gpsTopRight.lat + (1-u)*v*gpsBottomLeft.lat + u*v*gpsBottomRight.lat;
+          const lng_ = (1-u)*(1-v)*gpsTopLeft.lng + u*(1-v)*gpsTopRight.lng + (1-u)*v*gpsBottomLeft.lng + u*v*gpsBottomRight.lng;
+          // Jacobien
+          const dlat_du = (1-v)*(gpsTopRight.lat - gpsTopLeft.lat) + v*(gpsBottomRight.lat - gpsBottomLeft.lat);
+          const dlat_dv = (1-u)*(gpsBottomLeft.lat - gpsTopLeft.lat) + u*(gpsBottomRight.lat - gpsTopRight.lat);
+          const dlng_du = (1-v)*(gpsTopRight.lng - gpsTopLeft.lng) + v*(gpsBottomRight.lng - gpsBottomLeft.lng);
+          const dlng_dv = (1-u)*(gpsBottomLeft.lng - gpsTopLeft.lng) + u*(gpsBottomRight.lng - gpsTopRight.lng);
+          // Système linéaire
+          const det = dlat_du*dlng_dv - dlat_dv*dlng_du;
+          if (Math.abs(det) < 1e-12) break;
+          const du = ( (lat-lat_)*dlng_dv - (lng-lng_)*dlat_dv ) / det;
+          const dv = ( (lng-lng_)*dlat_du - (lat-lat_)*dlng_du ) / det;
+          u += du;
+          v += dv;
+          if (Math.abs(du) < EPS && Math.abs(dv) < EPS) break;
+          // Clamp
+          u = Math.max(0, Math.min(1, u));
+          v = Math.max(0, Math.min(1, v));
+        }
+        return {u, v};
+      }
+      const {u, v} = gpsQuadToXY(lat, lng);
+      // u,v dans [0,1] -> pixel
+      return { x: u * imgWidth, y: v * imgHeight };
     }
 
     let lastGpsPosition = null;
