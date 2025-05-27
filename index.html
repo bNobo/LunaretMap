@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lunaret Map - Plein écran</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #f7f7f7;
+    }
+    .fullscreen-img {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: contain;
+      background: #f7f7f7;
+      display: block;
+    }
+    .fullscreen-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button class="fullscreen-btn" onclick="openFullscreen()">Plein écran</button>
+  <img src="img/carte.png" alt="Carte du Zoo du Lunaret" class="fullscreen-img">
+  <script>
+    function openFullscreen() {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) { /* Safari */
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { /* IE11 */
+        elem.msRequestFullscreen();
+      }
+    }
+  </script>
+</body>
+</html>
