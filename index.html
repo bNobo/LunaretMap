@@ -34,11 +34,37 @@
       font-size: 1rem;
       cursor: pointer;
     }
+    #gps-dot {
+      display: none;
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: red;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 8px 2px #c00a;
+      pointer-events: none;
+      z-index: 15;
+    }
+    #gps-error {
+      position: absolute;
+      top: 60px;
+      right: 10px;
+      z-index: 20;
+      color: #c00;
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px #0002;
+      display: none;
+    }
   </style>
 </head>
 <body>
   <button class="fullscreen-btn" onclick="openFullscreen()">Plein écran</button>
-  <img src="img/carte.png" alt="Carte du Zoo du Lunaret" class="fullscreen-img">
+  <img id="carte" src="img/carte.png" alt="Carte du Zoo du Lunaret" class="fullscreen-img">
+  <div id="gps-dot"></div>
+  <div id="gps-error"></div>
   <script>
     function openFullscreen() {
       const elem = document.documentElement;
@@ -49,6 +75,99 @@
       } else if (elem.msRequestFullscreen) { /* IE11 */
         elem.msRequestFullscreen();
       }
+    }
+
+    // --- Affichage du point GPS sur la carte ---
+    // Coordonnées GPS des coins de la carte (à ajuster selon la carte réelle)
+    // Exemples fictifs :
+    //43.64526958682147, 3.8610944495057855
+    //43.63856388483909, 3.894421125886565
+    const gpsTopLeft = { lat: 43.64526958682147, lng: 3.8610944495057855 };
+    const gpsBottomRight = { lat: 43.63856388483909, lng: 3.894421125886565 };
+    const gpsTopRight = { lat: gpsTopLeft.lat, lng: gpsBottomRight.lng };
+
+    // Calcul automatique de l'angle de rotation de la carte (en radians)
+    function computeMapRotationRad(topLeft, topRight) {
+      const dLat = topRight.lat - topLeft.lat;
+      const dLng = topRight.lng - topLeft.lng;
+      // Angle entre l'axe horizontal de l'image et la ligne topLeft->topRight
+      return Math.atan2(dLat, dLng); // ATTENTION: inversé car latitude = Y, longitude = X
+    }
+    const mapRotationRad = computeMapRotationRad(gpsTopLeft, gpsTopRight);
+    // Ces valeurs doivent être mesurées sur le terrain ou sur la carte !
+
+    function gpsToPixel(lat, lng, imgWidth, imgHeight) {
+      // Conversion linéaire (à ajuster si la carte n'est pas parfaitement alignée)
+      let x = ((lng - gpsTopLeft.lng) / (gpsTopRight.lng - gpsTopLeft.lng)) * imgWidth;
+      let y = ((gpsTopLeft.lat - lat) / (gpsTopLeft.lat - gpsBottomRight.lat)) * imgHeight;
+      // Appliquer la rotation autour du centre de l'image
+      const cx = imgWidth / 2;
+      const cy = imgHeight / 2;
+      const dx = x - cx;
+      const dy = y - cy;
+      const cosA = Math.cos(-mapRotationRad); // sens inverse pour corriger
+      const sinA = Math.sin(-mapRotationRad);
+      const rx = dx * cosA - dy * sinA;
+      const ry = dx * sinA + dy * cosA;
+      return { x: cx + rx, y: cy + ry };
+    }
+
+    function showGpsDot(lat, lng) {
+      const img = document.getElementById('carte');
+      const dot = document.getElementById('gps-dot');
+      const errorDiv = document.getElementById('gps-error');
+      errorDiv.style.display = 'none';
+      // Attendre que l'image soit chargée
+      if (!img.complete) {
+        img.onload = () => showGpsDot(lat, lng);
+        return;
+      }
+      const rect = img.getBoundingClientRect();
+      // Calculer le ratio de l'image et du conteneur
+      const naturalRatio = img.naturalWidth / img.naturalHeight;
+      const containerRatio = rect.width / rect.height;
+      let displayWidth, displayHeight, offsetX, offsetY;
+      if (containerRatio > naturalRatio) {
+        // marges à gauche/droite
+        displayHeight = rect.height;
+        displayWidth = rect.height * naturalRatio;
+        offsetX = rect.left + (rect.width - displayWidth) / 2;
+        offsetY = rect.top;
+      } else {
+        // marges en haut/bas
+        displayWidth = rect.width;
+        displayHeight = rect.width / naturalRatio;
+        offsetX = rect.left;
+        offsetY = rect.top + (rect.height - displayHeight) / 2;
+      }
+      // Calculer la position du point dans l'image affichée
+      const px = gpsToPixel(lat, lng, displayWidth, displayHeight);
+      dot.style.display = 'block';
+      dot.style.position = 'fixed';
+      dot.style.left = (offsetX + px.x - 10) + 'px';
+      dot.style.top = (offsetY + px.y - 10) + 'px';
+    }
+
+    function showGpsError(msg) {
+      const errorDiv = document.getElementById('gps-error');
+      errorDiv.textContent = msg;
+      errorDiv.style.display = 'block';
+      document.getElementById('gps-dot').style.display = 'none';
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        pos => {
+          const { latitude, longitude } = pos.coords;
+          showGpsDot(latitude, longitude);
+        },
+        err => {
+          showGpsError("Erreur de géolocalisation : " + err.message);
+        },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
+      );
+    } else {
+      showGpsError("La géolocalisation n'est pas supportée par ce navigateur.");
     }
   </script>
 </body>
