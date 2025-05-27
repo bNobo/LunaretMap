@@ -9,3 +9,8 @@ L'utilisateur doit autoriser l'application à accéder à sa position pour que s
 - HTML
 - CSS
 - JavaScript
+
+## Fonctionnalités
+
+- Affichage de la carte du Zoo du Lunaret
+- Affichage de la position de l'utilisateur en temps réel
