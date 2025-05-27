@@ -61,22 +61,10 @@
   </style>
 </head>
 <body>
-  <button class="fullscreen-btn" onclick="openFullscreen()">Plein écran</button>
   <img id="carte" src="img/carte.png" alt="Carte du Zoo du Lunaret" class="fullscreen-img">
   <div id="gps-dot"></div>
   <div id="gps-error"></div>
   <script>
-    function openFullscreen() {
-      const elem = document.documentElement;
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) { /* Safari */
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) { /* IE11 */
-        elem.msRequestFullscreen();
-      }
-    }
-
     // --- Affichage du point GPS sur la carte ---
     // Coordonnées GPS des coins de la carte (à ajuster selon la carte réelle)
     // Exemples fictifs :
