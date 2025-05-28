@@ -4,6 +4,8 @@ Application web pour mobile permettant d'afficher la position de l'utilisateur s
 
 L'utilisateur doit autoriser l'application à accéder à sa position GPS pour qu'elle apparaisse sur la carte. Toutefois, si l'utilisateur ne le souhaites pas, alors il peut utiliser l'application pour uniquement afficher la carte.
 
+Version live ici : https://bnobo.github.io/LunaretMap/www/
+
 ## Technologies utilisées
 
 - HTML
