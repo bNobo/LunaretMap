@@ -17,7 +17,8 @@
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
       width: 100vw;
-      height: 100vh;
+      height: calc(100vh - 60px); /* Réduire la hauteur pour laisser de l'espace en bas */
+      padding-bottom: 60px; /* Ajouter un padding en bas */
       object-fit: contain;
       background: #f7f7f7;
       display: block;
@@ -103,12 +104,13 @@
       const rect = img.getBoundingClientRect();
       // Calculer le ratio de l'image et du conteneur
       const naturalRatio = img.naturalWidth / img.naturalHeight;
-      const containerRatio = rect.width / rect.height;
+      const containerHeight = window.innerHeight - 60; // Hauteur disponible moins la marge
+      const containerRatio = rect.width / containerHeight;
       let displayWidth, displayHeight, offsetX, offsetY;
       if (containerRatio > naturalRatio) {
         // marges à gauche/droite
-        displayHeight = rect.height;
-        displayWidth = rect.height * naturalRatio;
+        displayHeight = containerHeight;
+        displayWidth = containerHeight * naturalRatio;
         offsetX = rect.left + (rect.width - displayWidth) / 2;
         offsetY = rect.top;
       } else {
@@ -116,7 +118,7 @@
         displayWidth = rect.width;
         displayHeight = rect.width / naturalRatio;
         offsetX = rect.left;
-        offsetY = rect.top + (rect.height - displayHeight) / 2;
+        offsetY = rect.top + (containerHeight - displayHeight) / 2;
       }
       // Calculer la position du point dans l'image affichée
       const px = gpsToPixel(lat, lng, displayWidth, displayHeight);
