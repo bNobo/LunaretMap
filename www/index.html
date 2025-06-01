@@ -101,8 +101,8 @@
     let canvas = null;
     let ctx = null;
 
-    function showGpsDot(lat, lng) {
-      lastGpsPosition = { lat, lng };
+    function showGpsDot(lat, lng, heading = null) {
+      lastGpsPosition = { lat, lng, heading };
       
       // Ajouter la nouvelle position à la trace (éviter les doublons trop proches)
       if (gpsTrail.length === 0 || 
@@ -218,17 +218,87 @@
       
       // Calculer la position du point GPS actuel dans l'image affichée
       const px = gpsToPixel(lat, lng, displayWidth, displayHeight);
-      dot.style.display = 'block';
-      dot.style.position = 'fixed';
-      dot.style.left = (offsetX + px.x - 10) + 'px';
-      dot.style.top = (offsetY + px.y - 10) + 'px';
+      
+      // Dessiner d'abord un cercle rouge sur le canvas pour remplacer le point HTML
+      ctx.fillStyle = 'red';
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(px.x, px.y, 10, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Ajouter une ombre pour l'effet visuel
+      ctx.shadowColor = 'rgba(204, 0, 0, 0.6)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.beginPath();
+      ctx.arc(px.x, px.y, 10, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Réinitialiser l'ombre
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+
+      //Forcer la direction à un angle fixe pour le test 
+      //heading = 45.0;
+
+      console.log(`heading: ${heading}, lat: ${lat}, lng: ${lng}, px: (${px.x}, ${px.y})`);
+      
+      // Dessiner le cône de direction par-dessus le point rouge
+      if (heading !== null && !isNaN(heading)) {
+        drawDirectionCone(ctx, px.x, px.y, heading);
+      }
+      
+      // Cacher le point HTML puisqu'on le dessine maintenant sur le canvas
+      dot.style.display = 'none';
+    }
+
+    // Fonction pour dessiner le cône de direction
+    function drawDirectionCone(ctx, x, y, heading) {
+      const coneLength = 8; // Longueur du cône réduite pour rester dans le cercle
+      const coneWidth = 6;   // Largeur de la base du cône réduite
+      
+      // Convertir l'angle en radians (heading est en degrés, 0° = Nord)
+      // On soustrait 90° pour que 0° pointe vers le haut (Nord)
+      const angleRad = (heading - 90) * Math.PI / 180;
+      
+      // Point de la pointe du cône
+      const tipX = x + Math.cos(angleRad) * coneLength;
+      const tipY = y + Math.sin(angleRad) * coneLength;
+      
+      // Calculer les points de la base du triangle (perpendiculaires à la direction)
+      const perpAngle = angleRad + Math.PI / 2; // Angle perpendiculaire
+      
+      const base1X = x + Math.cos(perpAngle) * (coneWidth / 2);
+      const base1Y = y + Math.sin(perpAngle) * (coneWidth / 2);
+      const base2X = x - Math.cos(perpAngle) * (coneWidth / 2);
+      const base2Y = y - Math.sin(perpAngle) * (coneWidth / 2);
+      
+      console.log(`Drawing cone at (${x}, ${y}) with heading ${heading}°`);
+      console.log(`Tip: (${tipX}, ${tipY}), Base1: (${base1X}, ${base1Y}), Base2: (${base2X}, ${base2Y})`);
+      
+      // Dessiner le cône
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; // Blanc semi-transparent pour contraster avec le rouge
+      ctx.strokeStyle = '#000000'; // Bordure noire pour meilleur contraste
+      ctx.lineWidth = 1;
+      
+      ctx.beginPath();
+      ctx.moveTo(tipX, tipY);
+      ctx.lineTo(base1X, base1Y);
+      ctx.lineTo(base2X, base2Y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
     }
 
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
         pos => {
           const { latitude, longitude } = pos.coords;
-          showGpsDot(latitude, longitude);
+          const heading = pos.coords.heading; // Récupérer la direction
+          showGpsDot(latitude, longitude, heading);
         },
         err => {
           console.log(`Erreur de géolocalisation : ${err.code} - ${err.message}`);
@@ -242,7 +312,7 @@
     // Recalcule la position du point GPS lors du redimensionnement de la fenêtre
     window.addEventListener('resize', () => {
       if (lastGpsPosition) {
-        showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng);
+        showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
       }
     });
 
