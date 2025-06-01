@@ -47,8 +47,6 @@
 <body>
   <img id="carte" src="img/plan.webp" alt="Carte du Zoo du Lunaret" class="fullscreen-img">
   <canvas id="trail-canvas"></canvas>
-  <div id="gps-dot"></div>
-  <div id="gps-error"></div>
   <script>
     // --- Affichage du point GPS sur la carte ---
     // Coordonnées GPS des coins de la carte (à ajuster selon la carte réelle)
@@ -112,11 +110,7 @@
       }
       
       const img = document.getElementById('carte');
-      const dot = document.getElementById('gps-dot');
-      const errorDiv = document.getElementById('gps-error');
-      errorDiv.style.display = 'none';
-
-      
+            
       // Attendre que l'image soit chargée
       if (!img.complete) {
         img.onload = () => showGpsDot(lat, lng);
@@ -153,6 +147,7 @@
 
       // Dimensionner le canvas pour qu'il corresponde exactement à la zone de l'image
       const devicePixelRatio = window.devicePixelRatio || 1;
+      console.log(`Device Pixel Ratio: ${devicePixelRatio}`);
       canvas.width = displayWidth * devicePixelRatio;
       canvas.height = displayHeight * devicePixelRatio;
       canvas.style.width = displayWidth + 'px';
@@ -177,6 +172,7 @@
         ctx.shadowBlur = 0;
         
         ctx.beginPath();
+        // Dessiner chaque étape de la trace
         for (let i = 0; i < gpsTrail.length; i++) {
           const pos = gpsTrail[i];
           const px = gpsToPixel(pos.lat, pos.lng, displayWidth, displayHeight);
@@ -192,39 +188,37 @@
         }
         ctx.stroke();
         
-        // Dessiner des points aux positions importantes (début et étapes)
-        for (let i = 0; i < gpsTrail.length; i += 1) {
-          const pos = gpsTrail[i];
-          const px = gpsToPixel(pos.lat, pos.lng, displayWidth, displayHeight);
-          // Les coordonnées sont maintenant relatives au canvas (plus besoin d'offset)
-          const x = px.x;
-          const y = px.y;
-          
-          if (i === 0) {
-            ctx.fillStyle = '#28a745'; // Point vert au départ
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // Bordure blanche pour contraste
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
-            ctx.stroke();
-          }          
-        }
+        // Point vert au départ
+        const pos = gpsTrail[0];
+        const px = gpsToPixel(pos.lat, pos.lng, displayWidth, displayHeight);
+        // Les coordonnées sont maintenant relatives au canvas (plus besoin d'offset)
+        const x = px.x;
+        const y = px.y;
+        
+        ctx.fillStyle = '#28a745'; 
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Bordure blanche pour contraste
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+        ctx.stroke();
       }
       
       // Calculer la position du point GPS actuel dans l'image affichée
       const px = gpsToPixel(lat, lng, displayWidth, displayHeight);
       
-      // Dessiner d'abord un cercle rouge sur le canvas pour remplacer le point HTML
+      // Dessiner d'abord un cercle rouge sur le canvas
+      const radius = 20 / devicePixelRatio; // Rayon du cercle
+      
       ctx.fillStyle = 'red';
       ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 6 / devicePixelRatio;
       ctx.beginPath();
-      ctx.arc(px.x, px.y, 10, 0, 2 * Math.PI);
+      ctx.arc(px.x, px.y, radius, 0, 2 * Math.PI);
       ctx.fill();
       ctx.stroke();
       
@@ -234,14 +228,14 @@
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
       ctx.beginPath();
-      ctx.arc(px.x, px.y, 10, 0, 2 * Math.PI);
+      ctx.arc(px.x, px.y, radius, 0, 2 * Math.PI);
       ctx.fill();
       
       // Réinitialiser l'ombre
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
 
-      //Forcer la direction à un angle fixe pour le test 
+      //Forcer la direction à un angle fixe au besoin pour les tests
       //heading = 45.0;
 
       console.log(`heading: ${heading}, lat: ${lat}, lng: ${lng}, px: (${px.x}, ${px.y})`);
@@ -251,15 +245,13 @@
         drawDirectionCone(ctx, px.x, px.y, heading);
       }
       
-      // Cacher le point HTML puisqu'on le dessine maintenant sur le canvas
-      dot.style.display = 'none';
     }
 
     // Fonction pour dessiner le cône de direction
     function drawDirectionCone(ctx, x, y, heading) {
-      const coneLength = 8; // Longueur du cône réduite pour rester dans le cercle
-      const coneWidth = 6;   // Largeur de la base du cône réduite
-      
+      const coneLength = 15 / devicePixelRatio; // Longueur du cône réduite pour rester dans le cercle
+      const coneWidth = 10 / devicePixelRatio;   // Largeur de la base du cône réduite
+
       // Convertir l'angle en radians (heading est en degrés, 0° = Nord)
       // On soustrait 90° pour que 0° pointe vers le haut (Nord)
       const angleRad = (heading - 90) * Math.PI / 180;
