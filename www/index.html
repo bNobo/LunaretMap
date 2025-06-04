@@ -98,6 +98,29 @@
     let gpsTrail = []; // Stockage des positions GPS pour la trace
     let canvas = null;
     let ctx = null;
+    
+    // Historique des directions pour le calcul de la moyenne mobile
+    const headingHistory = [];
+    const MAX_HEADING_HISTORY = 5; // Nombre de valeurs à conserver pour la moyenne
+
+    // Fonction pour calculer la moyenne des angles en degrés
+    function calculateAverageHeading(headings) {
+      if (headings.length === 0) return null;
+      
+      // Convertir en coordonnées cartésiennes pour gérer correctement la moyenne circulaire
+      let sumX = 0;
+      let sumY = 0;
+      
+      for (const heading of headings) {
+        const rad = heading * Math.PI / 180;
+        sumX += Math.cos(rad);
+        sumY += Math.sin(rad);
+      }
+      
+      // Calculer l'angle moyen et convertir en degrés
+      const avgRad = Math.atan2(sumY, sumX);
+      return ((avgRad * 180 / Math.PI) + 360) % 360;
+    }
 
     function showGpsDot(lat, lng, heading = null) {
       lastGpsPosition = { lat, lng, heading };
@@ -238,11 +261,26 @@
       //Forcer la direction à un angle fixe au besoin pour les tests
       //heading = 45.0;
 
-      console.log(`heading: ${heading}, lat: ${lat}, lng: ${lng}, px: (${px.x}, ${px.y})`);
-      
-      // Dessiner le cône de direction par-dessus le point rouge
+      // headingHistory.push(30.0); // Ajouter une valeur fixe pour les tests
+      // headingHistory.push(45.0); // Ajouter une valeur fixe pour les tests
+      // headingHistory.push(60.0); // Ajouter une valeur fixe pour les tests
+      // headingHistory.push(40.0); // Ajouter une valeur fixe pour les tests
+      // headingHistory.push(42.0); // Ajouter une valeur fixe pour les tests
+
+      // Mettre à jour l'historique des directions si on a une nouvelle valeur valide
       if (heading !== null && !isNaN(heading)) {
-        drawDirectionCone(ctx, px.x, px.y, heading);
+        headingHistory.push(heading);
+        // Garder seulement les N dernières valeurs
+        if (headingHistory.length > MAX_HEADING_HISTORY) {
+          headingHistory.shift();
+        }
+        
+        // Calculer la direction moyenne
+        const avgHeading = calculateAverageHeading(headingHistory);
+        console.log(`heading: ${heading}, avgHeading: ${avgHeading}, lat: ${lat}, lng: ${lng}, px: (${px.x}, ${px.y})`);
+        
+        // Dessiner le cône de direction avec la direction moyenne
+        drawDirectionCone(ctx, px.x, px.y, avgHeading);
       }
       
     }
