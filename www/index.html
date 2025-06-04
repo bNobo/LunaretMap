@@ -51,6 +51,7 @@
     // --- Affichage du point GPS sur la carte ---
     // Coordonnées GPS des coins de la carte (à ajuster selon la carte réelle)
     
+    const MAP_ROTATION = 11.8; // Rotation de la carte en degrés (positive = vers la droite)
     const gpsTopLeft = { lat: 43.64526958682147, lng: 3.8610944495057855 };
     const gpsBottomRight = { lat: 43.63856388483909, lng: 3.894421125886565 };
     const gpsTopRight = { lat: 43.64981194623201, lng: 3.8910884500021616 };
@@ -259,7 +260,7 @@
       ctx.shadowBlur = 0;
 
       //Forcer la direction à un angle fixe au besoin pour les tests
-      //heading = 45.0;
+      //heading = 0.0;
 
       // headingHistory.push(30.0); // Ajouter une valeur fixe pour les tests
       // headingHistory.push(45.0); // Ajouter une valeur fixe pour les tests
@@ -292,7 +293,8 @@
 
       // Convertir l'angle en radians (heading est en degrés, 0° = Nord)
       // On soustrait 90° pour que 0° pointe vers le haut (Nord)
-      const angleRad = (heading - 90) * Math.PI / 180;
+      // Et on soustrait la rotation de la carte pour compenser
+      const angleRad = (heading - 90 - MAP_ROTATION) * Math.PI / 180;
       
       // Point de la pointe du cône
       const tipX = x + Math.cos(angleRad) * coneLength;
