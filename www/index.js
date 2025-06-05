@@ -15,32 +15,32 @@ function gpsToPixel(lat, lng, imgWidth, imgHeight) {
     //   pour (u,v) dans [0,1]
     // Méthode numérique simple (itérative)
     function gpsQuadToXY(lat, lng) {
-    const EPS = 1e-6;
-    let u = 0.5, v = 0.5;
-    for (let iter = 0; iter < 10; iter++) {
-        // Interpolation bilinéaire
-        const lat_ = (1-u)*(1-v)*gpsTopLeft.lat + u*(1-v)*gpsTopRight.lat + (1-u)*v*gpsBottomLeft.lat + u*v*gpsBottomRight.lat;
-        const lng_ = (1-u)*(1-v)*gpsTopLeft.lng + u*(1-v)*gpsTopRight.lng + (1-u)*v*gpsBottomLeft.lng + u*v*gpsBottomRight.lng;
-        // Jacobien
-        const dlat_du = (1-v)*(gpsTopRight.lat - gpsTopLeft.lat) + v*(gpsBottomRight.lat - gpsBottomLeft.lat);
-        const dlat_dv = (1-u)*(gpsBottomLeft.lat - gpsTopLeft.lat) + u*(gpsBottomRight.lat - gpsTopRight.lat);
-        const dlng_du = (1-v)*(gpsTopRight.lng - gpsTopLeft.lng) + v*(gpsBottomRight.lng - gpsBottomLeft.lng);
-        const dlng_dv = (1-u)*(gpsBottomLeft.lng - gpsTopLeft.lng) + u*(gpsBottomRight.lng - gpsTopRight.lng);
-        // Système linéaire
-        const det = dlat_du*dlng_dv - dlat_dv*dlng_du;
-        if (Math.abs(det) < 1e-12) break;
-        const du = ( (lat-lat_)*dlng_dv - (lng-lng_)*dlat_dv ) / det;
-        const dv = ( (lng-lng_)*dlat_du - (lat-lat_)*dlng_du ) / det;
-        u += du;
-        v += dv;
-        if (Math.abs(du) < EPS && Math.abs(dv) < EPS) break;
-        // Clamp
-        u = Math.max(0, Math.min(1, u));
-        v = Math.max(0, Math.min(1, v));
+        const EPS = 1e-6;
+        let u = 0.5, v = 0.5;
+        for (let iter = 0; iter < 10; iter++) {
+            // Interpolation bilinéaire
+            const lat_ = (1 - u) * (1 - v) * gpsTopLeft.lat + u * (1 - v) * gpsTopRight.lat + (1 - u) * v * gpsBottomLeft.lat + u * v * gpsBottomRight.lat;
+            const lng_ = (1 - u) * (1 - v) * gpsTopLeft.lng + u * (1 - v) * gpsTopRight.lng + (1 - u) * v * gpsBottomLeft.lng + u * v * gpsBottomRight.lng;
+            // Jacobien
+            const dlat_du = (1 - v) * (gpsTopRight.lat - gpsTopLeft.lat) + v * (gpsBottomRight.lat - gpsBottomLeft.lat);
+            const dlat_dv = (1 - u) * (gpsBottomLeft.lat - gpsTopLeft.lat) + u * (gpsBottomRight.lat - gpsTopRight.lat);
+            const dlng_du = (1 - v) * (gpsTopRight.lng - gpsTopLeft.lng) + v * (gpsBottomRight.lng - gpsBottomLeft.lng);
+            const dlng_dv = (1 - u) * (gpsBottomLeft.lng - gpsTopLeft.lng) + u * (gpsBottomRight.lng - gpsTopRight.lng);
+            // Système linéaire
+            const det = dlat_du * dlng_dv - dlat_dv * dlng_du;
+            if (Math.abs(det) < 1e-12) break;
+            const du = ((lat - lat_) * dlng_dv - (lng - lng_) * dlat_dv) / det;
+            const dv = ((lng - lng_) * dlat_du - (lat - lat_) * dlng_du) / det;
+            u += du;
+            v += dv;
+            if (Math.abs(du) < EPS && Math.abs(dv) < EPS) break;
+            // Clamp
+            u = Math.max(0, Math.min(1, u));
+            v = Math.max(0, Math.min(1, v));
+        }
+        return { u, v };
     }
-    return {u, v};
-    }
-    const {u, v} = gpsQuadToXY(lat, lng);
+    const { u, v } = gpsQuadToXY(lat, lng);
     // u,v dans [0,1] -> pixel
     return { x: u * imgWidth, y: v * imgHeight };
 }
@@ -57,17 +57,17 @@ const MAX_HEADING_HISTORY = 5; // Nombre de valeurs à conserver pour la moyenne
 // Fonction pour calculer la moyenne des angles en degrés
 function calculateAverageHeading(headings) {
     if (headings.length === 0) return null;
-    
+
     // Convertir en coordonnées cartésiennes pour gérer correctement la moyenne circulaire
     let sumX = 0;
     let sumY = 0;
-    
+
     for (const heading of headings) {
-    const rad = heading * Math.PI / 180;
-    sumX += Math.cos(rad);
-    sumY += Math.sin(rad);
+        const rad = heading * Math.PI / 180;
+        sumX += Math.cos(rad);
+        sumY += Math.sin(rad);
     }
-    
+
     // Calculer l'angle moyen et convertir en degrés
     const avgRad = Math.atan2(sumY, sumX);
     return ((avgRad * 180 / Math.PI) + 360) % 360;
@@ -75,48 +75,48 @@ function calculateAverageHeading(headings) {
 
 function showGpsDot(lat, lng, heading = null) {
     lastGpsPosition = { lat, lng, heading };
-    
+
     // Ajouter la nouvelle position à la trace (éviter les doublons trop proches)
-    if (gpsTrail.length === 0 || 
-        Math.abs(gpsTrail[gpsTrail.length - 1].lat - lat) > 0.0005 || 
+    if (gpsTrail.length === 0 ||
+        Math.abs(gpsTrail[gpsTrail.length - 1].lat - lat) > 0.0005 ||
         Math.abs(gpsTrail[gpsTrail.length - 1].lng - lng) > 0.0005) {
-    gpsTrail.push({ lat, lng, timestamp: Date.now() });
+        gpsTrail.push({ lat, lng, timestamp: Date.now() });
     }
-    
+
     const img = document.getElementById('carte');
-        
+
     // Attendre que l'image soit chargée
     if (!img.complete) {
-    img.onload = () => showGpsDot(lat, lng);
-    return;
+        img.onload = () => showGpsDot(lat, lng);
+        return;
     }
-    
+
     const rect = img.getBoundingClientRect();
-    
+
     // Calculer le ratio de l'image et du conteneur
     const naturalRatio = img.naturalWidth / img.naturalHeight;
     const containerHeight = window.innerHeight - 60; // Hauteur disponible moins la marge
     const containerRatio = rect.width / containerHeight;
     let displayWidth, displayHeight, offsetX, offsetY;
-    
+
     if (containerRatio > naturalRatio) {
-    // marges à gauche/droite
-    displayHeight = containerHeight;
-    displayWidth = containerHeight * naturalRatio;
-    offsetX = rect.left + (rect.width - displayWidth) / 2;
-    offsetY = rect.top;
+        // marges à gauche/droite
+        displayHeight = containerHeight;
+        displayWidth = containerHeight * naturalRatio;
+        offsetX = rect.left + (rect.width - displayWidth) / 2;
+        offsetY = rect.top;
     } else {
-    // marges en haut/bas
-    displayWidth = rect.width;
-    displayHeight = rect.width / naturalRatio;
-    offsetX = rect.left;
-    offsetY = rect.top + (containerHeight - displayHeight) / 2;
+        // marges en haut/bas
+        displayWidth = rect.width;
+        displayHeight = rect.width / naturalRatio;
+        offsetX = rect.left;
+        offsetY = rect.top + (containerHeight - displayHeight) / 2;
     }
-    
+
     // Initialiser le canvas si nécessaire
     if (!canvas) {
-    canvas = document.getElementById('trail-canvas');
-    ctx = canvas.getContext('2d');
+        canvas = document.getElementById('trail-canvas');
+        ctx = canvas.getContext('2d');
     }
 
     // Dimensionner le canvas pour qu'il corresponde exactement à la zone de l'image
@@ -131,63 +131,63 @@ function showGpsDot(lat, lng, heading = null) {
 
     // Appliquer le scaling pour la densité de pixels
     ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-    
+
     // Effacer le canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     // Dessiner la trace
     if (gpsTrail.length > 1) {
-    // Configuration pour des lignes nettes
-    ctx.strokeStyle = '#007bff';
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    
-    ctx.beginPath();
-    // Dessiner chaque étape de la trace
-    for (let i = 0; i < gpsTrail.length; i++) {
-        const pos = gpsTrail[i];
+        // Configuration pour des lignes nettes
+        ctx.strokeStyle = '#007bff';
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+
+        ctx.beginPath();
+        // Dessiner chaque étape de la trace
+        for (let i = 0; i < gpsTrail.length; i++) {
+            const pos = gpsTrail[i];
+            const px = gpsToPixel(pos.lat, pos.lng, displayWidth, displayHeight);
+            // Les coordonnées sont maintenant relatives au canvas (plus besoin d'offset)
+            const x = px.x;
+            const y = px.y;
+
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.stroke();
+
+        // Point vert au départ
+        const pos = gpsTrail[0];
         const px = gpsToPixel(pos.lat, pos.lng, displayWidth, displayHeight);
         // Les coordonnées sont maintenant relatives au canvas (plus besoin d'offset)
         const x = px.x;
         const y = px.y;
-        
-        if (i === 0) {
-        ctx.moveTo(x, y);
-        } else {
-        ctx.lineTo(x, y);
-        }
+
+        ctx.fillStyle = '#28a745';
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Bordure blanche pour contraste
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+        ctx.stroke();
     }
-    ctx.stroke();
-    
-    // Point vert au départ
-    const pos = gpsTrail[0];
-    const px = gpsToPixel(pos.lat, pos.lng, displayWidth, displayHeight);
-    // Les coordonnées sont maintenant relatives au canvas (plus besoin d'offset)
-    const x = px.x;
-    const y = px.y;
-    
-    ctx.fillStyle = '#28a745'; 
-    ctx.beginPath();
-    ctx.arc(x, y, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    
-    // Bordure blanche pour contraste
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(x, y, 3, 0, 2 * Math.PI);
-    ctx.stroke();
-    }
-    
+
     // Calculer la position du point GPS actuel dans l'image affichée
     const px = gpsToPixel(lat, lng, displayWidth, displayHeight);
-    
+
     // Dessiner d'abord un cercle rouge sur le canvas
     const radius = 20 / devicePixelRatio; // Rayon du cercle
-    
+
     ctx.fillStyle = 'red';
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 6 / devicePixelRatio;
@@ -195,7 +195,7 @@ function showGpsDot(lat, lng, heading = null) {
     ctx.arc(px.x, px.y, radius, 0, 2 * Math.PI);
     ctx.fill();
     ctx.stroke();
-    
+
     // Ajouter une ombre pour l'effet visuel
     ctx.shadowColor = 'rgba(204, 0, 0, 0.6)';
     ctx.shadowBlur = 8;
@@ -204,7 +204,7 @@ function showGpsDot(lat, lng, heading = null) {
     ctx.beginPath();
     ctx.arc(px.x, px.y, radius, 0, 2 * Math.PI);
     ctx.fill();
-    
+
     // Réinitialiser l'ombre
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
@@ -212,28 +212,28 @@ function showGpsDot(lat, lng, heading = null) {
     //Forcer la direction à un angle fixe au besoin pour les tests
     //heading = 0.0;
 
-    // headingHistory.push(30.0); // Ajouter une valeur fixe pour les tests
-    // headingHistory.push(45.0); // Ajouter une valeur fixe pour les tests
-    // headingHistory.push(60.0); // Ajouter une valeur fixe pour les tests
-    // headingHistory.push(40.0); // Ajouter une valeur fixe pour les tests
-    // headingHistory.push(42.0); // Ajouter une valeur fixe pour les tests
+    headingHistory.push(30.0); // Ajouter une valeur fixe pour les tests
+    headingHistory.push(45.0); // Ajouter une valeur fixe pour les tests
+    headingHistory.push(60.0); // Ajouter une valeur fixe pour les tests
+    headingHistory.push(40.0); // Ajouter une valeur fixe pour les tests
+    headingHistory.push(42.0); // Ajouter une valeur fixe pour les tests
 
     // Mettre à jour l'historique des directions si on a une nouvelle valeur valide
     if (heading !== null && !isNaN(heading)) {
-    headingHistory.push(heading);
-    // Garder seulement les N dernières valeurs
-    if (headingHistory.length > MAX_HEADING_HISTORY) {
-        headingHistory.shift();
+        headingHistory.push(heading);
+        // Garder seulement les N dernières valeurs
+        if (headingHistory.length > MAX_HEADING_HISTORY) {
+            headingHistory.shift();
+        }
+
+        // Calculer la direction moyenne
+        const avgHeading = calculateAverageHeading(headingHistory);
+        console.log(`heading: ${heading}, avgHeading: ${avgHeading}, lat: ${lat}, lng: ${lng}, px: (${px.x}, ${px.y})`);
+
+        // Dessiner le cône de direction avec la direction moyenne
+        drawDirectionCone(ctx, px.x, px.y, avgHeading);
     }
-    
-    // Calculer la direction moyenne
-    const avgHeading = calculateAverageHeading(headingHistory);
-    console.log(`heading: ${heading}, avgHeading: ${avgHeading}, lat: ${lat}, lng: ${lng}, px: (${px.x}, ${px.y})`);
-    
-    // Dessiner le cône de direction avec la direction moyenne
-    drawDirectionCone(ctx, px.x, px.y, avgHeading);
-    }
-    
+
 }
 
 // Fonction pour dessiner le cône de direction
@@ -245,27 +245,27 @@ function drawDirectionCone(ctx, x, y, heading) {
     // On soustrait 90° pour que 0° pointe vers le haut (Nord)
     // Et on soustrait la rotation de la carte pour compenser
     const angleRad = (heading - 90 - MAP_ROTATION) * Math.PI / 180;
-    
+
     // Point de la pointe du cône
     const tipX = x + Math.cos(angleRad) * coneLength;
     const tipY = y + Math.sin(angleRad) * coneLength;
-    
+
     // Calculer les points de la base du triangle (perpendiculaires à la direction)
     const perpAngle = angleRad + Math.PI / 2; // Angle perpendiculaire
-    
+
     const base1X = x + Math.cos(perpAngle) * (coneWidth / 2);
     const base1Y = y + Math.sin(perpAngle) * (coneWidth / 2);
     const base2X = x - Math.cos(perpAngle) * (coneWidth / 2);
     const base2Y = y - Math.sin(perpAngle) * (coneWidth / 2);
-    
+
     console.log(`Drawing cone at (${x}, ${y}) with heading ${heading}°`);
     console.log(`Tip: (${tipX}, ${tipY}), Base1: (${base1X}, ${base1Y}), Base2: (${base2X}, ${base2Y})`);
-    
+
     // Dessiner le cône
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; // Blanc semi-transparent pour contraster avec le rouge
     ctx.strokeStyle = '#000000'; // Bordure noire pour meilleur contraste
     ctx.lineWidth = 1;
-    
+
     ctx.beginPath();
     ctx.moveTo(tipX, tipY);
     ctx.lineTo(base1X, base1Y);
@@ -277,15 +277,15 @@ function drawDirectionCone(ctx, x, y, heading) {
 
 if (navigator.geolocation) {
     navigator.geolocation.watchPosition(
-    pos => {
-        const { latitude, longitude } = pos.coords;
-        const heading = pos.coords.heading; // Récupérer la direction
-        showGpsDot(latitude, longitude, heading);
-    },
-    err => {
-        console.log(`Erreur de géolocalisation : ${err.code} - ${err.message}`);
-    },
-    { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
+        pos => {
+            const { latitude, longitude } = pos.coords;
+            const heading = pos.coords.heading; // Récupérer la direction
+            showGpsDot(latitude, longitude, heading);
+        },
+        err => {
+            console.log(`Erreur de géolocalisation : ${err.code} - ${err.message}`);
+        },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
     );
 } else {
     console.log("La géolocalisation n'est pas supportée par ce navigateur.");
@@ -294,7 +294,7 @@ if (navigator.geolocation) {
 // Recalcule la position du point GPS lors du redimensionnement de la fenêtre
 window.addEventListener('resize', () => {
     if (lastGpsPosition) {
-    showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+        showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
     }
 });
 
@@ -302,7 +302,7 @@ window.addEventListener('resize', () => {
 function clearTrail() {
     gpsTrail = [];
     if (canvas && ctx) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 }
 
