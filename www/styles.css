@@ -1,0 +1,42 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #f7f7f7;
+}
+
+.fullscreen-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: calc(100vh - 60px); /* Réduire la hauteur pour laisser de l'espace en bas */
+    padding-bottom: 60px; /* Ajouter un padding en bas */
+    object-fit: contain;
+    background: #f7f7f7;
+    display: block;
+}
+
+#gps-dot {
+    display: none;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: red;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 8px 2px #c00a;
+    pointer-events: none;
+    z-index: 15;
+}
+
+#trail-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 10;
+}
