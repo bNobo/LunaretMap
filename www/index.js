@@ -212,11 +212,11 @@ function showGpsDot(lat, lng, heading = null) {
     //Forcer la direction à un angle fixe au besoin pour les tests
     //heading = 0.0;
 
-    headingHistory.push(30.0); // Ajouter une valeur fixe pour les tests
-    headingHistory.push(45.0); // Ajouter une valeur fixe pour les tests
-    headingHistory.push(60.0); // Ajouter une valeur fixe pour les tests
-    headingHistory.push(40.0); // Ajouter une valeur fixe pour les tests
-    headingHistory.push(42.0); // Ajouter une valeur fixe pour les tests
+    // headingHistory.push(30.0); // Ajouter une valeur fixe pour les tests
+    // headingHistory.push(45.0); // Ajouter une valeur fixe pour les tests
+    // headingHistory.push(60.0); // Ajouter une valeur fixe pour les tests
+    // headingHistory.push(40.0); // Ajouter une valeur fixe pour les tests
+    // headingHistory.push(42.0); // Ajouter une valeur fixe pour les tests
 
     // Mettre à jour l'historique des directions si on a une nouvelle valeur valide
     if (heading !== null && !isNaN(heading)) {
@@ -225,15 +225,15 @@ function showGpsDot(lat, lng, heading = null) {
         if (headingHistory.length > MAX_HEADING_HISTORY) {
             headingHistory.shift();
         }
+    }
 
+    if (headingHistory.length === MAX_HEADING_HISTORY) {
         // Calculer la direction moyenne
         const avgHeading = calculateAverageHeading(headingHistory);
-        console.log(`heading: ${heading}, avgHeading: ${avgHeading}, lat: ${lat}, lng: ${lng}, px: (${px.x}, ${px.y})`);
-
+        
         // Dessiner le cône de direction avec la direction moyenne
         drawDirectionCone(ctx, px.x, px.y, avgHeading);
     }
-
 }
 
 // Fonction pour dessiner le cône de direction
