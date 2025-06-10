@@ -23,8 +23,7 @@ html, body {
     top: 0;
     left: 0;
     width: 100%;
-    height: calc(100% - 60px);
-    padding-bottom: 60px;
+    height: 100%;
     object-fit: contain;
     display: block;
 }
