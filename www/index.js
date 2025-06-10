@@ -255,7 +255,7 @@ function showGpsDot(lat, lng, heading = null) {
     const px = gpsToPixel(lat, lng, displayWidth, displayHeight);
 
     // Dessiner d'abord un cercle rouge sur le canvas
-    const radius = 20 / devicePixelRatio; // Rayon du cercle
+    const radius = 10 / devicePixelRatio; // Rayon du cercle
 
     ctx.fillStyle = 'red';
     ctx.strokeStyle = '#fff';

@@ -69,19 +69,6 @@ html, body {
     bottom: 40px;
 }
 
-#gps-dot {
-    display: none;
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: red;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    box-shadow: 0 0 8px 2px #c00a;
-    pointer-events: none;
-    z-index: 15;
-}
-
 #trail-canvas {
     position: absolute;
     top: 0;
