@@ -1,3 +1,14 @@
+// Fonction pour mettre à jour la hauteur du viewport en CSS
+function setViewportHeight() {
+    // Obtenir la hauteur réelle du viewport
+    const vh = window.innerHeight * 0.01;
+    // Définir la variable CSS personnalisée
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// Exécuter au chargement
+setViewportHeight();
+
 // --- Affichage du point GPS sur la carte ---
 // Coordonnées GPS des coins de la carte (à ajuster selon la carte réelle)
 
@@ -51,20 +62,22 @@ let canvas = null;
 let ctx = null;
 let lastViewportHeight = window.innerHeight; // Stocker la dernière hauteur connue
 
-// Fonction pour détecter les changements significatifs de hauteur du viewport
+// Fonction pour détecter les changements de hauteur du viewport et mettre à jour l'affichage
 function handleViewportResize() {
+    // Mettre à jour la hauteur du viewport
+    setViewportHeight();
+    
     const currentHeight = window.innerHeight;
-    // Si la différence de hauteur est significative (plus de 10% de changement)
-    if (Math.abs(currentHeight - lastViewportHeight) > (lastViewportHeight * 0.1)) {
+    if (currentHeight !== lastViewportHeight) {
         console.log(`Viewport height changed from ${lastViewportHeight} to ${currentHeight}`);
         lastViewportHeight = currentHeight;
-        // Redessiner le point GPS si nous avons une position
-        if (lastGpsPosition) {
-            // Attendre un court instant pour que le navigateur stabilise la nouvelle taille
-            setTimeout(() => {
+        
+        // Laisser un peu de temps au navigateur pour appliquer les changements CSS
+        requestAnimationFrame(() => {
+            if (lastGpsPosition) {
                 showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
-            }, 100);
-        }
+            }
+        });
     }
 }
 
