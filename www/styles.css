@@ -7,14 +7,16 @@ html, body {
 }
 
 .fullscreen-img {
-    position: absolute;
+    position: fixed; /* Utilisé fixed au lieu de absolute pour éviter les problèmes de scroll */
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     width: 100vw;
-    height: calc(100vh - 60px); /* Réduire la hauteur pour laisser de l'espace en bas */
-    padding-bottom: 60px; /* Ajouter un padding en bas */
+    /* Utiliser dvh avec fallback vers vh */
+    height: calc(100dvh - 60px);
+    height: calc(var(--vh, 1vh) * 100 - 60px); /* Fallback dynamique */
+    padding-bottom: 60px;
     object-fit: contain;
     background: #f7f7f7;
     display: block;
