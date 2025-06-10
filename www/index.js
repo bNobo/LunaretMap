@@ -9,6 +9,43 @@ function setViewportHeight() {
 // Exécuter au chargement
 setViewportHeight();
 
+// Gestion du mode plein écran
+function toggleFullScreen() {
+    const container = document.getElementById('map-container');
+    
+    if (!document.fullscreenElement) {
+        // Passer en plein écran
+        if (container.requestFullscreen) {
+            container.requestFullscreen();
+        } else if (container.webkitRequestFullscreen) {
+            container.webkitRequestFullscreen();
+        } else if (container.msRequestFullscreen) {
+            container.msRequestFullscreen();
+        }
+    } else {
+        // Quitter le plein écran
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// Gestionnaire d'événements pour le bouton plein écran
+document.getElementById('fullscreen-btn').addEventListener('click', toggleFullScreen);
+
+// Gestionnaire pour les changements de plein écran
+document.addEventListener('fullscreenchange', () => {
+    if (lastGpsPosition) {
+        requestAnimationFrame(() => {
+            showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+        });
+    }
+});
+
 // --- Affichage du point GPS sur la carte ---
 // Coordonnées GPS des coins de la carte (à ajuster selon la carte réelle)
 
@@ -122,11 +159,12 @@ function showGpsDot(lat, lng, heading = null) {
         return;
     }
 
-    const rect = img.getBoundingClientRect();
+    const container = document.getElementById('map-container');
+    const rect = container.getBoundingClientRect();
 
     // Calculer le ratio de l'image et du conteneur
     const naturalRatio = img.naturalWidth / img.naturalHeight;
-    const containerHeight = window.innerHeight - 60; // Hauteur disponible moins la marge
+    const containerHeight = rect.height - 60; // Hauteur disponible moins la marge
     const containerRatio = rect.width / containerHeight;
     let displayWidth, displayHeight, offsetX, offsetY;
 
@@ -348,6 +386,3 @@ function clearTrail() {
 
 // Ajouter la fonction clearTrail à l'objet global pour permettre son utilisation
 window.clearTrail = clearTrail;
-
-// Gérer les changements de taille de viewport
-window.addEventListener('resize', handleViewportResize);
