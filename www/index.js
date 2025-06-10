@@ -164,7 +164,7 @@ function showGpsDot(lat, lng, heading = null) {
 
     // Calculer le ratio de l'image et du conteneur
     const naturalRatio = img.naturalWidth / img.naturalHeight;
-    const containerHeight = rect.height - 60; // Hauteur disponible moins la marge
+    const containerHeight = rect.height;
     const containerRatio = rect.width / containerHeight;
     let displayWidth, displayHeight, offsetX, offsetY;
 
