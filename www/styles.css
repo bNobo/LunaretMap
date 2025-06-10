@@ -6,20 +6,68 @@ html, body {
     background: #f7f7f7;
 }
 
-.fullscreen-img {
-    position: fixed; /* Utilisé fixed au lieu de absolute pour éviter les problèmes de scroll */
+#map-container {
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
+    background: #f7f7f7;
     width: 100vw;
-    /* Utiliser dvh avec fallback vers vh */
-    height: calc(100dvh - 60px);
-    height: calc(var(--vh, 1vh) * 100 - 60px); /* Fallback dynamique */
+    height: 100vh;
+    overflow: hidden;
+}
+
+.fullscreen-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 60px);
     padding-bottom: 60px;
     object-fit: contain;
-    background: #f7f7f7;
     display: block;
+}
+
+#trail-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#fullscreen-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    transition: all 0.3s ease;
+}
+
+#fullscreen-btn svg {
+    fill: #333;
+}
+
+#fullscreen-btn:hover {
+    background: #fff;
+}
+
+/* Style pour le mode plein écran */
+:fullscreen #fullscreen-btn,
+::backdrop #fullscreen-btn {
+    bottom: 40px;
 }
 
 #gps-dot {
