@@ -49,6 +49,24 @@ let lastGpsPosition = null;
 let gpsTrail = []; // Stockage des positions GPS pour la trace
 let canvas = null;
 let ctx = null;
+let lastViewportHeight = window.innerHeight; // Stocker la dernière hauteur connue
+
+// Fonction pour détecter les changements significatifs de hauteur du viewport
+function handleViewportResize() {
+    const currentHeight = window.innerHeight;
+    // Si la différence de hauteur est significative (plus de 10% de changement)
+    if (Math.abs(currentHeight - lastViewportHeight) > (lastViewportHeight * 0.1)) {
+        console.log(`Viewport height changed from ${lastViewportHeight} to ${currentHeight}`);
+        lastViewportHeight = currentHeight;
+        // Redessiner le point GPS si nous avons une position
+        if (lastGpsPosition) {
+            // Attendre un court instant pour que le navigateur stabilise la nouvelle taille
+            setTimeout(() => {
+                showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+            }, 100);
+        }
+    }
+}
 
 // Historique des directions pour le calcul de la moyenne mobile
 const headingHistory = [];
@@ -291,10 +309,19 @@ if (navigator.geolocation) {
     console.log("La géolocalisation n'est pas supportée par ce navigateur.");
 }
 
-// Recalcule la position du point GPS lors du redimensionnement de la fenêtre
-window.addEventListener('resize', () => {
-    if (lastGpsPosition) {
-        showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+// Gérer les changements de taille de viewport
+window.addEventListener('resize', handleViewportResize);
+window.addEventListener('orientationchange', () => {
+    // Attendre que le changement d'orientation soit terminé
+    setTimeout(handleViewportResize, 300);
+});
+// Gérer les changements de visibilité du document
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && lastGpsPosition) {
+        // Recalculer la position après un court délai quand la page redevient visible
+        setTimeout(() => {
+            showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+        }, 300);
     }
 });
 
@@ -308,3 +335,6 @@ function clearTrail() {
 
 // Ajouter la fonction clearTrail à l'objet global pour permettre son utilisation
 window.clearTrail = clearTrail;
+
+// Gérer les changements de taille de viewport
+window.addEventListener('resize', handleViewportResize);
