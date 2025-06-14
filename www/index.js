@@ -342,23 +342,6 @@ const resizeObserver = new ResizeObserver((entries) => {
 // Observer les changements de taille sur la fenêtre
 resizeObserver.observe(document.documentElement);
 
-// Gestionnaire pour les changements de plein écran
-document.addEventListener('fullscreenchange', () => {
-    console.log(`Plein écran : ${document.fullscreenElement ? 'activé' : 'désactivé'}`);
-    const img = document.getElementById('map-container');
-
-    // Forcer le recalcul du layout de l'image
-    // pour éviter les problèmes de rendu dans certains navigateurs
-    img.style.width = '0%';
-    img.style.height = '0%';
-
-    setTimeout(() => {
-        // Forcer le recalcul du layout de l'image
-        img.style.width = '100%';
-        img.style.height = '100%';
-    }, 1000);
-});
-
 // Gérer les changements de visibilité du document
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden && lastGpsPosition) {
