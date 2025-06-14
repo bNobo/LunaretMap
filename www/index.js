@@ -349,10 +349,10 @@ document.addEventListener('fullscreenchange', () => {
 
     // Forcer le recalcul du layout de l'image
     // pour éviter les problèmes de rendu dans certains navigateurs
-    img.style.display = 'none';
+    img.style.width = '0%';
+    img.style.height = '0%';
 
     requestAnimationFrame(() => {
-        img.style.display = 'block';
         img.style.width = '100%';
         img.style.height = '100%';
         handleViewportResize();
