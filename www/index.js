@@ -77,22 +77,19 @@ let lastGpsPosition = null;
 let gpsTrail = []; // Stockage des positions GPS pour la trace
 let canvas = null;
 let ctx = null;
-let lastViewportHeight = window.innerHeight; // Stocker la dernière hauteur connue
 
 // Fonction pour détecter les changements de hauteur du viewport et mettre à jour l'affichage
 function handleViewportResize() {
     const currentHeight = window.innerHeight;
-    if (currentHeight !== lastViewportHeight) {
-        console.log(`Viewport height changed from ${lastViewportHeight} to ${currentHeight}`);
-        lastViewportHeight = currentHeight;
-        
-        // Laisser un peu de temps au navigateur pour appliquer les changements CSS
-        requestAnimationFrame(() => {
-            if (lastGpsPosition) {
-                showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
-            }
-        });
-    }
+    console.log(`Viewport height changed to ${currentHeight}`);
+    lastViewportHeight = currentHeight;
+    
+    // Laisser un peu de temps au navigateur pour appliquer les changements CSS
+    requestAnimationFrame(() => {
+        if (lastGpsPosition) {
+            showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+        }
+    });
 }
 
 // Historique des directions pour le calcul de la moyenne mobile
@@ -345,44 +342,22 @@ const resizeObserver = new ResizeObserver((entries) => {
 // Observer les changements de taille sur la fenêtre
 resizeObserver.observe(document.documentElement);
 
-// Fonction utilitaire pour forcer plusieurs mises à jour
-// function forceMultipleUpdates() {
-//     const delays = [100, 300, 500, 1000];
-//     delays.forEach(delay => {
-//         setTimeout(() => {
-//             handleViewportResize();
-//             if (lastGpsPosition) {
-//                 showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
-//             }
-//         }, delay);
-//     });
-// }
-
 // Gestionnaire pour les changements de plein écran
 document.addEventListener('fullscreenchange', () => {
     console.log(`Plein écran : ${document.fullscreenElement ? 'activé' : 'désactivé'}`);
     const img = document.getElementById('carte');
-    const container = document.getElementById('map-container');
 
-    // Forcer le rechargement de l'image
+    // Forcer le recalcul du layout de l'image
+    // pour éviter les problèmes de rendu dans certains navigateurs
     img.style.display = 'none';
+
     requestAnimationFrame(() => {
         img.style.display = 'block';
-
-        // Forcer le recalcul des styles du conteneur
-        container.style.width = '100vw';
-        container.style.height = '100vh';
-
-        // Recalculer le layout
+        img.style.width = '100%';
+        img.style.height = '100%';
         handleViewportResize();
-        //forceMultipleUpdates();
     });
 });
-
-// Gérer les changements d'orientation de l'écran
-// window.addEventListener('orientationchange', () => {
-//     forceMultipleUpdates();
-// });
 
 // Gérer les changements de visibilité du document
 document.addEventListener('visibilitychange', () => {
