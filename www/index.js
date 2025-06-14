@@ -39,11 +39,15 @@ document.getElementById('fullscreen-btn').addEventListener('click', toggleFullSc
 
 // Gestionnaire pour les changements de plein écran
 document.addEventListener('fullscreenchange', () => {
-    if (lastGpsPosition) {
-        requestAnimationFrame(() => {
+    // Forcer un redimensionnement après un court délai pour laisser le temps au navigateur
+    // de mettre à jour les dimensions de l'écran
+    setTimeout(() => {
+        handleViewportResize();
+        if (lastGpsPosition) {
+            // Si nous avons une position GPS, mettre à jour l'affichage du point
             showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
-        });
-    }
+        }
+    }, 100);
 });
 
 // --- Affichage du point GPS sur la carte ---
@@ -360,12 +364,25 @@ if (navigator.geolocation) {
     console.log("La géolocalisation n'est pas supportée par ce navigateur.");
 }
 
-// Gérer les changements de taille de viewport
-window.addEventListener('resize', handleViewportResize);
-window.addEventListener('orientationchange', () => {
-    // Attendre que le changement d'orientation soit terminé
-    setTimeout(handleViewportResize, 300);
+// Gérer les changements de taille et d'orientation avec ResizeObserver
+const resizeObserver = new ResizeObserver((entries) => {
+    requestAnimationFrame(handleViewportResize);
 });
+
+// Observer les changements de taille sur la fenêtre
+resizeObserver.observe(document.documentElement);
+
+// Gérer les changements d'orientation de l'écran (cas particulier)
+window.addEventListener('orientationchange', () => {
+    // Un seul timeout devrait suffire avec ResizeObserver
+    setTimeout(() => {
+        handleViewportResize();
+        if (lastGpsPosition) {
+            showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+        }
+    }, 100);
+});
+
 // Gérer les changements de visibilité du document
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden && lastGpsPosition) {
