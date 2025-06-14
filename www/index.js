@@ -1,14 +1,3 @@
-// Fonction pour mettre à jour la hauteur du viewport en CSS
-function setViewportHeight() {
-    // Obtenir la hauteur réelle du viewport
-    const vh = window.innerHeight * 0.01;
-    // Définir la variable CSS personnalisée
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
-}
-
-// Exécuter au chargement
-setViewportHeight();
-
 // Gestion du mode plein écran
 function toggleFullScreen() {
     const container = document.getElementById('map-container');
@@ -36,19 +25,6 @@ function toggleFullScreen() {
 
 // Gestionnaire d'événements pour le bouton plein écran
 document.getElementById('fullscreen-btn').addEventListener('click', toggleFullScreen);
-
-// Gestionnaire pour les changements de plein écran
-document.addEventListener('fullscreenchange', () => {
-    // Forcer un redimensionnement après un court délai pour laisser le temps au navigateur
-    // de mettre à jour les dimensions de l'écran
-    setTimeout(() => {
-        handleViewportResize();
-        if (lastGpsPosition) {
-            // Si nous avons une position GPS, mettre à jour l'affichage du point
-            showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
-        }
-    }, 100);
-});
 
 // --- Affichage du point GPS sur la carte ---
 // Coordonnées GPS des coins de la carte (à ajuster selon la carte réelle)
@@ -105,9 +81,6 @@ let lastViewportHeight = window.innerHeight; // Stocker la dernière hauteur con
 
 // Fonction pour détecter les changements de hauteur du viewport et mettre à jour l'affichage
 function handleViewportResize() {
-    // Mettre à jour la hauteur du viewport
-    setViewportHeight();
-    
     const currentHeight = window.innerHeight;
     if (currentHeight !== lastViewportHeight) {
         console.log(`Viewport height changed from ${lastViewportHeight} to ${currentHeight}`);
@@ -373,27 +346,43 @@ const resizeObserver = new ResizeObserver((entries) => {
 resizeObserver.observe(document.documentElement);
 
 // Fonction utilitaire pour forcer plusieurs mises à jour
-function forceMultipleUpdates() {
-    const delays = [100, 300, 500, 1000];
-    delays.forEach(delay => {
-        setTimeout(() => {
-            handleViewportResize();
-            if (lastGpsPosition) {
-                showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
-            }
-        }, delay);
-    });
-}
+// function forceMultipleUpdates() {
+//     const delays = [100, 300, 500, 1000];
+//     delays.forEach(delay => {
+//         setTimeout(() => {
+//             handleViewportResize();
+//             if (lastGpsPosition) {
+//                 showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+//             }
+//         }, delay);
+//     });
+// }
 
 // Gestionnaire pour les changements de plein écran
 document.addEventListener('fullscreenchange', () => {
-    forceMultipleUpdates();
+    console.log(`Plein écran : ${document.fullscreenElement ? 'activé' : 'désactivé'}`);
+    const img = document.getElementById('carte');
+    const container = document.getElementById('map-container');
+
+    // Forcer le rechargement de l'image
+    img.style.display = 'none';
+    requestAnimationFrame(() => {
+        img.style.display = 'block';
+
+        // Forcer le recalcul des styles du conteneur
+        container.style.width = '100vw';
+        container.style.height = '100vh';
+
+        // Recalculer le layout
+        handleViewportResize();
+        //forceMultipleUpdates();
+    });
 });
 
 // Gérer les changements d'orientation de l'écran
-window.addEventListener('orientationchange', () => {
-    forceMultipleUpdates();
-});
+// window.addEventListener('orientationchange', () => {
+//     forceMultipleUpdates();
+// });
 
 // Gérer les changements de visibilité du document
 document.addEventListener('visibilitychange', () => {
