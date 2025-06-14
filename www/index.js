@@ -352,11 +352,11 @@ document.addEventListener('fullscreenchange', () => {
     img.style.width = '0%';
     img.style.height = '0%';
 
-    requestAnimationFrame(() => {
+    setTimeout(() => {
+        // Forcer le recalcul du layout de l'image
         img.style.width = '100%';
         img.style.height = '100%';
-        handleViewportResize();
-    });
+    }, 5000);
 });
 
 // Gérer les changements de visibilité du document
