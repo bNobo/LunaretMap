@@ -372,15 +372,27 @@ const resizeObserver = new ResizeObserver((entries) => {
 // Observer les changements de taille sur la fenêtre
 resizeObserver.observe(document.documentElement);
 
-// Gérer les changements d'orientation de l'écran (cas particulier)
+// Fonction utilitaire pour forcer plusieurs mises à jour
+function forceMultipleUpdates() {
+    const delays = [100, 300, 500, 1000];
+    delays.forEach(delay => {
+        setTimeout(() => {
+            handleViewportResize();
+            if (lastGpsPosition) {
+                showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+            }
+        }, delay);
+    });
+}
+
+// Gestionnaire pour les changements de plein écran
+document.addEventListener('fullscreenchange', () => {
+    forceMultipleUpdates();
+});
+
+// Gérer les changements d'orientation de l'écran
 window.addEventListener('orientationchange', () => {
-    // Un seul timeout devrait suffire avec ResizeObserver
-    setTimeout(() => {
-        handleViewportResize();
-        if (lastGpsPosition) {
-            showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
-        }
-    }, 100);
+    forceMultipleUpdates();
 });
 
 // Gérer les changements de visibilité du document
