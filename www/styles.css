@@ -63,12 +63,6 @@ html, body {
     background: #fff;
 }
 
-/* Style pour le mode plein écran */
-:fullscreen #fullscreen-btn,
-::backdrop #fullscreen-btn {
-    bottom: 40px;
-}
-
 /* Styles spécifiques pour le mode plein écran */
 #map-container:fullscreen {
     width: 100vw !important;

@@ -345,7 +345,7 @@ resizeObserver.observe(document.documentElement);
 // Gestionnaire pour les changements de plein écran
 document.addEventListener('fullscreenchange', () => {
     console.log(`Plein écran : ${document.fullscreenElement ? 'activé' : 'désactivé'}`);
-    const img = document.getElementById('carte');
+    const img = document.getElementById('map-container');
 
     // Forcer le recalcul du layout de l'image
     // pour éviter les problèmes de rendu dans certains navigateurs
@@ -356,7 +356,7 @@ document.addEventListener('fullscreenchange', () => {
         // Forcer le recalcul du layout de l'image
         img.style.width = '100%';
         img.style.height = '100%';
-    }, 5000);
+    }, 1000);
 });
 
 // Gérer les changements de visibilité du document
