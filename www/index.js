@@ -1,3 +1,8 @@
+// Enregistrement du service worker pour la mise en cache
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+
 // Gestion du mode plein écran
 function toggleFullScreen() {
     const container = document.getElementById('map-container');
