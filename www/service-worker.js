@@ -1,9 +1,9 @@
 const CACHE_NAME = 'lunaretmap-cache-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/index.js',
-  '/styles.css',
+  '',
+  'index.html',
+  'index.js',
+  'styles.css',
 ];
 
 self.addEventListener('install', event => {
