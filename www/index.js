@@ -28,9 +28,6 @@ function toggleFullScreen() {
     }
 }
 
-// Gestionnaire d'événements pour le bouton plein écran
-document.getElementById('fullscreen-btn').addEventListener('click', toggleFullScreen);
-
 // --- Affichage du point GPS sur la carte ---
 // Coordonnées GPS des coins de la carte (à ajuster selon la carte réelle)
 
@@ -269,7 +266,28 @@ function showGpsDot(lat, lng, heading = null) {
     }
 
     if (gpsSignalLost) {
-        return; // Ne pas dessiner le point GPS si le signal est perdu
+        // Dessiner un cercle avec un point d'interrogation à la dernière position connue
+        const px = gpsToPixel(lat, lng, displayWidth, displayHeight);
+        const radius = 14 / devicePixelRatio;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(px.x, px.y, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffe200'; // Jaune panneau Attention
+        ctx.strokeStyle = '#b88c4a'; // Marron clair
+        ctx.lineWidth = 3 / devicePixelRatio;
+        ctx.fill();
+        ctx.stroke();
+
+        // Dessiner le point d'interrogation
+        ctx.font = `${Math.round(radius * 1.2)}px Arial`;
+        ctx.fillStyle = '#5c2d13'; // Marron titre principal
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('?', px.x, px.y);
+
+        ctx.restore();
+        return;
     }
 
     // Calculer la position du point GPS actuel dans l'image affichée
@@ -452,17 +470,25 @@ const resizeObserver = new ResizeObserver((entries) => {
 // Observer les changements de taille sur la fenêtre
 resizeObserver.observe(document.documentElement);
 
-// Gérer les changements de visibilité du document
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && lastGpsPosition) {
-        // Recalculer la position après un court délai quand la page redevient visible
-        setTimeout(() => {
-            showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
-        }, 300);
-    }
-});
+// Enregistrement des événements ici pour s'assurer que le DOM est prêt
+document.addEventListener('DOMContentLoaded', function() {
+    // Gérer les changements de visibilité du document
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && lastGpsPosition) {
+            // Recalculer la position après un court délai quand la page redevient visible
+            setTimeout(() => {
+                showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+            }, 300);
+        }
+    });
 
-document.getElementById('gps-notif-hide').onclick = function() {
-    hideGpsWaitingNotification();
-    gpsWaitingNotificationUserHidden = true;
-};
+    // Gestionnaire d'événements pour le bouton de masquage de la notification GPS
+    document.getElementById('gps-notif-hide').onclick = function() {
+        hideGpsWaitingNotification();
+        gpsWaitingNotificationUserHidden = true;
+    };
+
+    // Gestionnaire d'événements pour le bouton plein écran
+    document.getElementById('fullscreen-btn').addEventListener('click', toggleFullScreen);
+
+});
