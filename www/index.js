@@ -540,7 +540,7 @@ function drawDirectionCone(ctx, x, y, heading) {
 }
 
 let lastPositionTimestamp = null;
-const GPS_TIMEOUT = 5000; // 5 secondes sans nouvelle position = signal perdu
+const GPS_TIMEOUT = 10000; // 10 secondes sans nouvelle position = signal perdu
 let gpsWaitingNotificationUserHidden = false;
 
 if (navigator.geolocation) {
