@@ -81,6 +81,66 @@ let canvas = null;
 let ctx = null;
 let gpsSignalLost = false;
 
+// --- Hors zone ---
+function isPointInQuad(lat, lng) {
+    // Utilise la même méthode que gpsToPixel pour obtenir (u,v), mais sans clamp dans la boucle !
+    function gpsQuadToUV(lat, lng) {
+        const EPS = 1e-6;
+        let u = 0.5, v = 0.5;
+        for (let iter = 0; iter < 10; iter++) {
+            const lat_ = (1 - u) * (1 - v) * gpsTopLeft.lat + u * (1 - v) * gpsTopRight.lat + (1 - u) * v * gpsBottomLeft.lat + u * v * gpsBottomRight.lat;
+            const lng_ = (1 - u) * (1 - v) * gpsTopLeft.lng + u * (1 - v) * gpsTopRight.lng + (1 - u) * v * gpsBottomLeft.lng + u * v * gpsBottomRight.lng;
+            const dlat_du = (1 - v) * (gpsTopRight.lat - gpsTopLeft.lat) + v * (gpsBottomRight.lat - gpsBottomLeft.lat);
+            const dlat_dv = (1 - u) * (gpsBottomLeft.lat - gpsTopLeft.lat) + u * (gpsBottomRight.lat - gpsTopRight.lat);
+            const dlng_du = (1 - v) * (gpsTopRight.lng - gpsTopLeft.lng) + v * (gpsBottomRight.lng - gpsBottomLeft.lng);
+            const dlng_dv = (1 - u) * (gpsBottomLeft.lng - gpsTopLeft.lng) + u * (gpsBottomRight.lng - gpsTopRight.lng);
+            const det = dlat_du * dlng_dv - dlat_dv * dlng_du;
+            if (Math.abs(det) < 1e-12) break;
+            const du = ((lat - lat_) * dlng_dv - (lng - lng_) * dlat_dv) / det;
+            const dv = ((lng - lng_) * dlat_du - (lat - lat_) * dlng_du) / det;
+            u += du;
+            v += dv;
+            if (Math.abs(du) < EPS && Math.abs(dv) < EPS) break;
+            // NE PAS CLAMPER u et v ici !
+        }
+        return { u, v };
+    }
+    const { u, v } = gpsQuadToUV(lat, lng);
+    // On considère "dans la zone" si u et v sont dans [0,1] (avec une petite tolérance)
+    return u >= -0.02 && u <= 1.02 && v >= -0.02 && v <= 1.02;
+}
+
+function showOutOfBoundsPanel(show, angleToCenter = 0) {
+    const panel = document.getElementById('out-of-bounds-panel');
+    if (!panel) return;
+    if (show) {
+        panel.style.display = 'block';
+        // Tourner la flèche en tenant compte de la rotation de la carte
+        const arrow = document.getElementById('direction-arrow');
+        if (arrow) {
+            // Correction : soustraire MAP_ROTATION pour compenser l'orientation de la carte
+            const correctedAngle = angleToCenter - MAP_ROTATION;
+            arrow.style.transform = `rotate(${correctedAngle}deg)`;
+        }
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function computeAngleToCenter(lat, lng) {
+    // Centre du parc (moyenne des coins)
+    const centerLat = (gpsTopLeft.lat + gpsTopRight.lat + gpsBottomLeft.lat + gpsBottomRight.lat) / 4;
+    const centerLng = (gpsTopLeft.lng + gpsTopRight.lng + gpsBottomLeft.lng + gpsBottomRight.lng) / 4;
+    // Angle du point vers le centre (en degrés, 0 = nord)
+    const dLat = centerLat - lat;
+    const dLng = centerLng - lng;
+    const angleRad = Math.atan2(dLng, dLat); // y = nord, x = est
+    let angleDeg = angleRad * 180 / Math.PI;
+    angleDeg = (angleDeg + 360) % 360;
+    // Adapter pour que 0° = haut (nord)
+    return angleDeg;
+}
+
 // Fonction pour détecter les changements de hauteur du viewport et mettre à jour l'affichage
 function handleViewportResize() {
     const currentHeight = window.innerHeight;
@@ -135,6 +195,20 @@ function haversine(lat1, lng1, lat2, lng2) {
 function showGpsDot(lat, lng, heading = null) {
     lastGpsPosition = { lat, lng, heading };
 
+    // Vérifier si hors zone
+    const inZone = isPointInQuad(lat, lng);
+    if (!inZone) {
+        // Calculer l'angle vers le centre
+        const angle = computeAngleToCenter(lat, lng);
+        showOutOfBoundsPanel(true, angle);
+        // Ne pas dessiner le point rouge ni la trace
+        // Effacer le canvas
+        if (canvas && ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+    } else {
+        showOutOfBoundsPanel(false);
+    }
+
     const DISTANCE_MIN = 10;   // mètres (éviter les doublons trop proches)
     const DISTANCE_MAX = 2000;  // mètres (filtrer les sauts GPS)
     const DISTANCE_THRESHOLD = 80; // mètres (distance minimale pour ajouter un tracé plein)
@@ -183,6 +257,7 @@ function showGpsDot(lat, lng, heading = null) {
         offsetX = rect.left;
         offsetY = rect.top + (containerHeight - displayHeight) / 2;
     }
+
 
     // Initialiser le canvas si nécessaire
     if (!canvas) {

@@ -124,3 +124,43 @@ html, body {
     font-weight: bold;
     opacity: 1;
 }
+
+/* Panneau hors zone */
+#out-of-bounds-panel {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255,255,255,0.97);
+    border: 2px solid #007bff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    z-index: 100;
+    padding: 32px 32px 24px 32px;
+    min-width: 260px;
+    min-height: 120px;
+    text-align: center;
+    pointer-events: auto;
+}
+#out-of-bounds-panel .panel-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+#out-of-bounds-panel .panel-text {
+    font-size: 1.2em;
+    color: #222;
+    margin-bottom: 18px;
+    font-weight: 500;
+}
+#out-of-bounds-panel .arrow-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+}
+#direction-arrow {
+    transition: transform 0.3s cubic-bezier(.4,2,.6,1);
+}
