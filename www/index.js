@@ -82,6 +82,7 @@ let lastGpsPosition = null;
 let gpsTrail = []; // Stockage des positions GPS pour la trace
 let canvas = null;
 let ctx = null;
+let gpsSignalLost = false;
 
 // Fonction pour détecter les changements de hauteur du viewport et mettre à jour l'affichage
 function handleViewportResize() {
@@ -267,6 +268,10 @@ function showGpsDot(lat, lng, heading = null) {
         ctx.stroke();
     }
 
+    if (gpsSignalLost) {
+        return; // Ne pas dessiner le point GPS si le signal est perdu
+    }
+
     // Calculer la position du point GPS actuel dans l'image affichée
     const px = gpsToPixel(lat, lng, displayWidth, displayHeight);
 
@@ -408,6 +413,7 @@ if (navigator.geolocation) {
             const heading = pos.coords.heading; // Récupérer la direction
             lastPositionTimestamp = Date.now();
             gpsWaitingNotificationUserHidden = false; // Réinitialiser le flag si on reçoit une position
+            gpsSignalLost = false;
             showGpsDot(latitude, longitude, heading);
         },
         err => {
@@ -422,8 +428,10 @@ if (navigator.geolocation) {
 setInterval(() => {
     if (gpsWaitingNotificationUserHidden) return; // Ne pas afficher si l'utilisateur a masqué la notification
     if (!lastPositionTimestamp || Date.now() - lastPositionTimestamp > GPS_TIMEOUT) {        
+        gpsSignalLost = true;
         showGpsWaitingNotification();
     } else {
+        gpsSignalLost = false;
         hideGpsWaitingNotification();
     }
 }, 1000);
