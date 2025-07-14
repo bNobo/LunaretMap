@@ -104,7 +104,19 @@ function handleDeviceOrientation(event) {
         heading = 360 - event.alpha;
     }
     if (heading !== null && !isNaN(heading)) {
-        deviceHeading = (heading + 360) % 360;
+        // Correction selon l'orientation de l'écran
+        let orientation = 0;
+        if (window.screen && window.screen.orientation && typeof window.screen.orientation.angle === 'number') {
+            orientation = window.screen.orientation.angle;
+        } else if (typeof window.orientation === 'number') {
+            orientation = window.orientation;
+        }
+        // En paysage, il faut corriger la boussole
+        // Portrait primaire: 0, paysage primaire: 90, paysage secondaire: -90 ou 270, portrait secondaire: 180
+        // On soustrait l'angle d'orientation de l'écran
+        let correctedHeading = (heading - orientation);
+        correctedHeading = (correctedHeading + 360) % 360;
+        deviceHeading = correctedHeading;
         hasDeviceOrientation = true;
     }
 }
