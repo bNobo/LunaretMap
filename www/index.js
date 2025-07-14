@@ -81,6 +81,34 @@ let canvas = null;
 let ctx = null;
 let gpsSignalLost = false;
 
+// --- Orientation du téléphone (boussole) ---
+let deviceHeading = 0; // 0 = nord
+let hasDeviceOrientation = false;
+
+if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientationabsolute', handleDeviceOrientation, true);
+    window.addEventListener('deviceorientation', handleDeviceOrientation, true);
+}
+
+function handleDeviceOrientation(event) {
+    // Privilégier absolute, sinon fallback sur alpha
+    let heading = null;
+    if (typeof event.webkitCompassHeading === 'number') {
+        // iOS
+        heading = event.webkitCompassHeading;
+    } else if (typeof event.absolute === 'boolean' && event.absolute && typeof event.alpha === 'number') {
+        // Android/Chrome
+        heading = 360 - event.alpha;
+    } else if (typeof event.alpha === 'number') {
+        // Fallback (pas toujours fiable)
+        heading = 360 - event.alpha;
+    }
+    if (heading !== null && !isNaN(heading)) {
+        deviceHeading = (heading + 360) % 360;
+        hasDeviceOrientation = true;
+    }
+}
+
 // --- Hors zone ---
 function isPointInQuad(lat, lng) {
     // Utilise la même méthode que gpsToPixel pour obtenir (u,v), mais sans clamp dans la boucle !
@@ -115,11 +143,15 @@ function showOutOfBoundsPanel(show, angleToCenter = 0) {
     if (!panel) return;
     if (show) {
         panel.style.display = 'block';
-        // Tourner la flèche en tenant compte de la rotation de la carte
+        // Tourner la flèche en tenant compte de la rotation de la carte ET de l'orientation du téléphone
         const arrow = document.getElementById('direction-arrow');
         if (arrow) {
-            // Correction : soustraire MAP_ROTATION pour compenser l'orientation de la carte
-            const correctedAngle = angleToCenter - MAP_ROTATION;
+            let correctedAngle = angleToCenter - MAP_ROTATION;
+            if (hasDeviceOrientation) {
+                correctedAngle -= deviceHeading;
+            }
+            // Normaliser l'angle
+            correctedAngle = ((correctedAngle % 360) + 360) % 360;
             arrow.style.transform = `rotate(${correctedAngle}deg)`;
         }
     } else {
