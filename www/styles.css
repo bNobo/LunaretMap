@@ -84,3 +84,43 @@ html, body {
     width: 100%;
     height: 100%;
 }
+
+/* Notification GPS en attente */
+#gps-waiting-notification {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ffe200; /* Jaune panneau Attention */
+    color: #5c2d13;      /* Marron titre principal */
+    padding: 14px 100px 14px 14px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    font-size: 1.1em;
+    z-index: 30;
+    border: 1px solid #b88c4a; /* Marron clair */
+    display: block;    
+    transition: opacity 0.4s ease;
+    opacity: 0;
+    pointer-events: none; /* Empêche l'interaction avec la notification */
+}
+
+#gps-waiting-notification.visible {
+    opacity: 1;
+    pointer-events: auto; /* Permet l'interaction lorsque visible */
+}
+
+#gps-waiting-notification .hide-btn {
+    position: absolute;
+    right: 10px;
+    top: 17px;
+    font-size: 0.75em;
+    color: #5c2d13;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 8px 0 0;
+    text-decoration: underline;
+    font-weight: bold;
+    opacity: 1;
+}

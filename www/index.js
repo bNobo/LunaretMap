@@ -397,20 +397,43 @@ function drawDirectionCone(ctx, x, y, heading) {
     ctx.stroke();
 }
 
+let lastPositionTimestamp = null;
+const GPS_TIMEOUT = 5000; // 5 secondes sans nouvelle position = signal perdu
+let gpsWaitingNotificationUserHidden = false;
+
 if (navigator.geolocation) {
     navigator.geolocation.watchPosition(
         pos => {
             const { latitude, longitude } = pos.coords;
             const heading = pos.coords.heading; // Récupérer la direction
+            lastPositionTimestamp = Date.now();
+            gpsWaitingNotificationUserHidden = false; // Réinitialiser le flag si on reçoit une position
             showGpsDot(latitude, longitude, heading);
         },
         err => {
             console.log(`Erreur de géolocalisation : ${err.code} - ${err.message}`);
         },
         { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
-    );
+    );    
 } else {
     console.log("La géolocalisation n'est pas supportée par ce navigateur.");
+}
+
+setInterval(() => {
+    if (gpsWaitingNotificationUserHidden) return; // Ne pas afficher si l'utilisateur a masqué la notification
+    if (!lastPositionTimestamp || Date.now() - lastPositionTimestamp > GPS_TIMEOUT) {        
+        showGpsWaitingNotification();
+    } else {
+        hideGpsWaitingNotification();
+    }
+}, 1000);
+
+function showGpsWaitingNotification() {
+    document.getElementById('gps-waiting-notification').classList.add('visible');
+}
+
+function hideGpsWaitingNotification() {
+    document.getElementById('gps-waiting-notification').classList.remove('visible');
 }
 
 // Gérer les changements de taille et d'orientation avec ResizeObserver
@@ -431,13 +454,7 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-// Fonction pour nettoyer la trace (optionnel - peut être appelée via console)
-function clearTrail() {
-    gpsTrail = [];
-    if (canvas && ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-}
-
-// Ajouter la fonction clearTrail à l'objet global pour permettre son utilisation
-window.clearTrail = clearTrail;
+document.getElementById('gps-notif-hide').onclick = function() {
+    hideGpsWaitingNotification();
+    gpsWaitingNotificationUserHidden = true;
+};
