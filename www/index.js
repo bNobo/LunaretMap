@@ -113,8 +113,8 @@ function handleDeviceOrientation(event) {
         }
         // En paysage, il faut corriger la boussole
         // Portrait primaire: 0, paysage primaire: 90, paysage secondaire: -90 ou 270, portrait secondaire: 180
-        // On soustrait l'angle d'orientation de l'écran
-        let correctedHeading = (heading - orientation);
+        // On ajoute l'angle d'orientation de l'écran
+        let correctedHeading = (heading + orientation);
         correctedHeading = (correctedHeading + 360) % 360;
         deviceHeading = correctedHeading;
         hasDeviceOrientation = true;
