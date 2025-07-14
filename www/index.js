@@ -606,4 +606,32 @@ document.addEventListener('DOMContentLoaded', function() {
     // Gestionnaire d'événements pour le bouton plein écran
     document.getElementById('fullscreen-btn').addEventListener('click', toggleFullScreen);
 
+    // Gestionnaire d'événements pour le bouton de réduction du panneau "Hors zone"
+    const outPanel = document.getElementById('out-of-bounds-panel');
+    const hideBtn = document.getElementById('out-of-bounds-hide-btn');
+
+    if (hideBtn && outPanel) {
+        hideBtn.onclick = function () {
+            outPanel.classList.add('reduced');
+            // Afficher le bouton "restaurer"
+            if (!document.getElementById('out-of-bounds-restore-btn')) {
+                const restoreBtn = document.createElement('button');
+                restoreBtn.className = 'panel-restore-btn';
+                restoreBtn.id = 'out-of-bounds-restore-btn';
+                restoreBtn.title = "Agrandir";
+                restoreBtn.ariaLabel = "Agrandir";
+                restoreBtn.innerHTML = `
+<svg width="38" height="38" viewBox="0 0 24 24">
+  <path fill="#007bff" d="M7 14l5-5 5 5"/>
+</svg>`;
+                // Ajoute le bouton après la flèche
+                outPanel.querySelector('.arrow-container').appendChild(restoreBtn);
+                restoreBtn.onclick = function() {
+                    outPanel.classList.remove('reduced');
+                    restoreBtn.remove();
+                };
+            }
+        };
+    }
+
 });

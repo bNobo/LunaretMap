@@ -14,7 +14,7 @@
     <img id="carte" src="img/plan.webp" alt="Carte du Zoo du Lunaret" class="fullscreen-img">
     <canvas id="trail-canvas"></canvas>    
   </div>
-  <div id="out-of-bounds-panel">
+  <div id="out-of-bounds-panel">    
     <div class="panel-content">
       <div class="panel-text">Vous êtes en dehors du parc, suivez la flèche</div>
       <div class="arrow-container">
@@ -23,6 +23,9 @@
         </svg>
       </div>
     </div>
+    <button class="panel-hide-btn" id="out-of-bounds-hide-btn" aria-label="Réduire le panneau" title="Réduire">
+      <svg width="28" height="28" viewBox="0 0 24 24"><path fill="#007bff" d="M7 10l5 5 5-5z"/></svg>
+    </button>
   </div>
   <button id="fullscreen-btn" aria-label="Plein écran">
     <svg viewBox="0 0 24 24" width="24" height="24">

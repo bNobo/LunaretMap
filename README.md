@@ -23,4 +23,5 @@ Remarque : si vous verrouillez votre téléphone, l'application cessera de suivr
 - Possibilité de zoomer et dézoomer sur le plan
 - Mode plein écran
 - Tracé du chemin parcouru par l'utilisateur
+- Flèche indiquant la direction du parc lorsqu'on se trouve en dehors de celui-ci
 

@@ -142,6 +142,8 @@ html, body {
     min-height: 120px;
     text-align: center;
     pointer-events: auto;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
 }
 #out-of-bounds-panel .panel-content {
     display: flex;
@@ -163,4 +165,96 @@ html, body {
 }
 #direction-arrow {
     transition: transform 0.3s cubic-bezier(.4,2,.6,1);
+}
+
+#out-of-bounds-panel .panel-hide-btn {
+    position: absolute;
+    left: 14px;
+    bottom: 10px;
+    background: none;
+    border: #007bff 2px solid;
+    color: #007bff;
+    cursor: pointer;
+    z-index: 101;
+    opacity: 0.85;
+    transition: opacity 0.2s, background 0.2s;
+    border-radius: 50%;
+    line-height: 1;
+    outline: none;
+    min-width: 56px;         /* Taille minimale tactile */
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#out-of-bounds-panel .panel-hide-btn svg {
+    width: 38px;
+    height: 38px;
+    display: block;
+}
+
+#out-of-bounds-panel .panel-hide-btn:active,
+#out-of-bounds-panel .panel-hide-btn:focus,
+#out-of-bounds-panel .panel-hide-btn:hover {
+    background: #e7f0fa;
+    opacity: 1;
+}
+
+#out-of-bounds-panel.reduced {
+    min-width: unset;
+    min-height: unset;
+    width: auto;
+    height: auto;
+    padding: 8px 16px 8px 16px;
+    top: unset;
+    right: unset;
+    bottom: 20px;
+    left: 20px;
+    transform: none;
+    border-radius: 30px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+}
+
+#out-of-bounds-panel.reduced .panel-content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+#out-of-bounds-panel.reduced .panel-text {
+    display: none;
+}
+#out-of-bounds-panel.reduced .panel-hide-btn {
+    display: none;
+}
+
+/* Bouton de restauration */
+#out-of-bounds-panel .panel-restore-btn {
+    background: none;
+    border: #007bff 2px solid;
+    color: #007bff;
+    cursor: pointer;
+    margin-left: 8px;
+    opacity: 0.85;
+    transition: opacity 0.2s, background 0.2s;
+    border-radius: 50%;
+    min-width: 56px;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#out-of-bounds-panel .panel-restore-btn svg {
+    width: 38px;
+    height: 38px;
+    display: block;
+}
+#out-of-bounds-panel .panel-restore-btn:active,
+#out-of-bounds-panel .panel-restore-btn:focus,
+#out-of-bounds-panel .panel-restore-btn:hover {
+    background: #e7f0fa;
+    opacity: 1;
 }
