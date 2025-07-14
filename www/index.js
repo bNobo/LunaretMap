@@ -87,11 +87,10 @@ let hasDeviceOrientation = false;
 
 if (window.DeviceOrientationEvent) {
     window.addEventListener('deviceorientationabsolute', handleDeviceOrientation, true);
-    window.addEventListener('deviceorientation', handleDeviceOrientation, true);
 }
 
 function handleDeviceOrientation(event) {
-    // Privilégier absolute, sinon fallback sur alpha
+    // Privilégier absolute, pas de fallback sur alpha
     let heading = null;
     if (typeof event.webkitCompassHeading === 'number') {
         // iOS
@@ -99,10 +98,7 @@ function handleDeviceOrientation(event) {
     } else if (typeof event.absolute === 'boolean' && event.absolute && typeof event.alpha === 'number') {
         // Android/Chrome
         heading = 360 - event.alpha;
-    } else if (typeof event.alpha === 'number') {
-        // Fallback (pas toujours fiable)
-        heading = 360 - event.alpha;
-    }
+    } 
     if (heading !== null && !isNaN(heading)) {
         // Correction selon l'orientation de l'écran
         let orientation = 0;
