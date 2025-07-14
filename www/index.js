@@ -270,29 +270,66 @@ function showGpsDot(lat, lng, heading = null) {
     // Calculer la position du point GPS actuel dans l'image affichée
     const px = gpsToPixel(lat, lng, displayWidth, displayHeight);
 
-    // Dessiner d'abord un cercle rouge sur le canvas
-    const radius = 10 / devicePixelRatio; // Rayon du cercle
+    // Animation de pulsation (effet "bulle") autour du point rouge
+    // On utilise requestAnimationFrame pour animer le halo
 
-    ctx.fillStyle = 'red';
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 6 / devicePixelRatio;
+    // Animation de pulsation (effet "bulle") autour du point rouge, toujours dans le même sens
+    if (!window._gpsPulseStart) window._gpsPulseStart = performance.now();
+    const t = performance.now() - window._gpsPulseStart;
+    const pulseDuration = 1500; // ms pour un cycle complet
+    const pauseDuration = 1000;  // ms de pause entre deux pulsations
+    const totalDuration = pulseDuration + pauseDuration;
+    const cycle = t % totalDuration;
+    const radius = 10 / devicePixelRatio; // Rayon du cercle
+    let haloRadius = radius;
+    let haloAlpha = 0;
+
+    if (cycle < pulseDuration) {
+        // Phase de pulsation
+        const phase = cycle / pulseDuration; // 0 à 1
+        haloRadius = radius + 10 * phase;
+        haloAlpha = 0.6 * (1 - phase);
+        if (haloAlpha > 0.0) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(px.x, px.y, haloRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = `rgba(255,0,0,${haloAlpha})`;
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+    // Pas besoin de réinitialiser window._gpsPulseStart, le modulo gère le cycle
+
+    // Point rouge classique
+    ctx.save();
     ctx.beginPath();
     ctx.arc(px.x, px.y, radius, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
-
-    // Ajouter une ombre pour l'effet visuel
+    ctx.fillStyle = 'red';
     ctx.shadowColor = 'rgba(204, 0, 0, 0.6)';
     ctx.shadowBlur = 8;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
+    ctx.fill();
+    ctx.restore();
+
+    // Bordure blanche
+    ctx.save();
     ctx.beginPath();
     ctx.arc(px.x, px.y, radius, 0, 2 * Math.PI);
-    ctx.fill();
+    ctx.lineWidth = 4 / devicePixelRatio;
+    ctx.strokeStyle = '#fff';
+    ctx.stroke();
+    ctx.restore();
 
-    // Réinitialiser l'ombre
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
+    // Relance l'animation à chaque frame
+    if (!window._gpsPulseAnim) {
+        window._gpsPulseAnim = true;
+        function animatePulse() {
+            window._gpsPulseAnim = false;
+            if (lastGpsPosition) {
+                showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+            }
+        }
+        requestAnimationFrame(animatePulse);
+    }
 
     //Forcer la direction à un angle fixe au besoin pour les tests
     //heading = 0.0;
