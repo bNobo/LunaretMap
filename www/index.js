@@ -86,7 +86,7 @@ let ctx = null;
 // Fonction pour détecter les changements de hauteur du viewport et mettre à jour l'affichage
 function handleViewportResize() {
     const currentHeight = window.innerHeight;
-    console.log(`Viewport height changed to ${currentHeight}`);
+    //console.log(`Viewport height changed to ${currentHeight}`);
     lastViewportHeight = currentHeight;
     
     // Laisser un peu de temps au navigateur pour appliquer les changements CSS
@@ -120,13 +120,38 @@ function calculateAverageHeading(headings) {
     return ((avgRad * 180 / Math.PI) + 360) % 360;
 }
 
+// Fonction utilitaire (half versed sine) pour calculer la distance entre deux points GPS (en mètres).
+// Calcule la distance à vol d'oiseau (distance orthodromique) entre deux points donnés par leurs coordonnées GPS (latitude/longitude), en tenant compte de la courbure de la Terre.
+function haversine(lat1, lng1, lat2, lng2) {
+    const R = 6371000; // Rayon de la Terre en mètres
+    const toRad = x => x * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+              Math.sin(dLng/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
 function showGpsDot(lat, lng, heading = null) {
     lastGpsPosition = { lat, lng, heading };
 
-    // Ajouter la nouvelle position à la trace (éviter les doublons trop proches)
-    if (gpsTrail.length === 0 ||
-        Math.abs(gpsTrail[gpsTrail.length - 1].lat - lat) > 0.0005 ||
-        Math.abs(gpsTrail[gpsTrail.length - 1].lng - lng) > 0.0005) {
+    const DISTANCE_MIN = 10;   // mètres (éviter les doublons trop proches)
+    const DISTANCE_MAX = 2000;  // mètres (filtrer les sauts GPS)
+    const DISTANCE_THRESHOLD = 80; // mètres (distance minimale pour ajouter un tracé plein)
+
+    let addPoint = false;
+    if (gpsTrail.length === 0) {
+        addPoint = true;
+    } else {
+        const last = gpsTrail[gpsTrail.length - 1];
+        const dist = haversine(last.lat, last.lng, lat, lng);
+        if (dist > DISTANCE_MIN && dist < DISTANCE_MAX) {
+            addPoint = true;
+        }
+    }
+    if (addPoint) {
         gpsTrail.push({ lat, lng, timestamp: Date.now() });
     }
 
@@ -169,7 +194,7 @@ function showGpsDot(lat, lng, heading = null) {
 
     // Dimensionner le canvas pour qu'il corresponde exactement à la zone de l'image
     const devicePixelRatio = window.devicePixelRatio || 1;
-    console.log(`Device Pixel Ratio: ${devicePixelRatio}`);
+    //console.log(`Device Pixel Ratio: ${devicePixelRatio}`);
     canvas.width = displayWidth * devicePixelRatio;
     canvas.height = displayHeight * devicePixelRatio;
     canvas.style.width = displayWidth + 'px';
@@ -205,9 +230,21 @@ function showGpsDot(lat, lng, heading = null) {
             if (i === 0) {
                 ctx.moveTo(x, y);
             } else {
+                const prev = gpsTrail[i - 1];
+                const dist = haversine(prev.lat, prev.lng, pos.lat, pos.lng);
+                if (dist > DISTANCE_THRESHOLD) {
+                    // Ligne en pointillés
+                    ctx.setLineDash([1, 4]);
+                } else {
+                    ctx.setLineDash([]);
+                }
                 ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
             }
         }
+        ctx.setLineDash([]); // Réinitialiser
         ctx.stroke();
 
         // Point vert au départ
@@ -306,8 +343,8 @@ function drawDirectionCone(ctx, x, y, heading) {
     const base2X = x - Math.cos(perpAngle) * (coneWidth / 2);
     const base2Y = y - Math.sin(perpAngle) * (coneWidth / 2);
 
-    console.log(`Drawing cone at (${x}, ${y}) with heading ${heading}°`);
-    console.log(`Tip: (${tipX}, ${tipY}), Base1: (${base1X}, ${base1Y}), Base2: (${base2X}, ${base2Y})`);
+    //console.log(`Drawing cone at (${x}, ${y}) with heading ${heading}°`);
+    //console.log(`Tip: (${tipX}, ${tipY}), Base1: (${base1X}, ${base1Y}), Base2: (${base2X}, ${base2Y})`);
 
     // Dessiner le cône
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; // Blanc semi-transparent pour contraster avec le rouge

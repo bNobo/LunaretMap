@@ -8,6 +8,8 @@ L'utilisateur doit autoriser l'application à accéder à sa position GPS pour q
 
 Version live ici : https://bnobo.github.io/LunaretMap/www/
 
+Remarque : si vous verrouillez votre téléphone, l'application cessera de suivre votre position GPS. Il s'agit d'une limitation de la géolocalisation dans les applications web qui permet de préserver la batterie. Lorsque vous déverrouillez votre téléphone, l'application reprendra le suivi de votre position GPS et un tracé en pointillés apparaîtra sur le plan pour indiquer le chemin "à vol d'oiseau" parcouru depuis la dernière position connue.
+
 ## Technologies utilisées
 
 - HTML
@@ -19,4 +21,6 @@ Version live ici : https://bnobo.github.io/LunaretMap/www/
 - Affichage du plan du Zoo du Lunaret
 - Affichage de la position GPS de l'utilisateur sur le plan
 - Possibilité de zoomer et dézoomer sur le plan
+- Mode plein écran
+- Tracé du chemin parcouru par l'utilisateur
 
