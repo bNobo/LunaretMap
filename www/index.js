@@ -622,10 +622,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 restoreBtn.ariaLabel = "Agrandir";
                 restoreBtn.innerHTML = `
 <svg width="38" height="38" viewBox="0 0 24 24">
-  <path fill="#007bff" d="M7 14l5-5 5 5"/>
+  <path fill="#000000" d="M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
 </svg>`;
-                // Ajoute le bouton après la flèche
-                outPanel.querySelector('.arrow-container').appendChild(restoreBtn);
+                // Ajoute le bouton avant la flèche
+                const arrowContainer = outPanel.querySelector('.arrow-container');
+                arrowContainer.insertBefore(restoreBtn, arrowContainer.firstChild);
                 restoreBtn.onclick = function() {
                     outPanel.classList.remove('reduced');
                     restoreBtn.remove();

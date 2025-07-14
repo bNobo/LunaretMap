@@ -98,7 +98,7 @@ html, body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     font-size: 1.1em;
     z-index: 30;
-    border: 1px solid #b88c4a; /* Marron clair */
+    border: 2px solid #b88c4a; /* Marron clair */
     display: block;    
     transition: opacity 0.4s ease;
     opacity: 0;
@@ -171,9 +171,9 @@ html, body {
     position: absolute;
     left: 14px;
     bottom: 10px;
-    background: none;
-    border: #007bff 2px solid;
-    color: #007bff;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);    
     cursor: pointer;
     z-index: 101;
     opacity: 0.85;
@@ -181,8 +181,8 @@ html, body {
     border-radius: 50%;
     line-height: 1;
     outline: none;
-    min-width: 56px;         /* Taille minimale tactile */
-    min-height: 56px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -233,16 +233,16 @@ html, body {
 
 /* Bouton de restauration */
 #out-of-bounds-panel .panel-restore-btn {
-    background: none;
-    border: #007bff 2px solid;
-    color: #007bff;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); 
     cursor: pointer;
     margin-left: 8px;
     opacity: 0.85;
     transition: opacity 0.2s, background 0.2s;
     border-radius: 50%;
-    min-width: 56px;
-    min-height: 56px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
