@@ -1,12 +1,12 @@
 // Enregistrement du service worker pour la mise en cache
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
+    navigator.serviceWorker.register('service-worker.js');
 }
 
 // Gestion du mode plein écran
 function toggleFullScreen() {
     const container = document.getElementById('map-container');
-    
+
     if (!document.fullscreenElement) {
         // Passer en plein écran
         if (container.requestFullscreen) {
@@ -31,7 +31,7 @@ function toggleFullScreen() {
 // --- Affichage du point GPS sur la carte ---
 // Coordonnées GPS des coins de la carte (à ajuster selon la carte réelle)
 
-const MAP_ROTATION = 11.8; // Rotation de la carte en degrés (positive = vers la droite)
+const MAP_ORIENTATION = -11.8; // Orientation de la carte en degrés (positive = vers la droite). Il s'agit de l'angle entre le nord géographique et le haut de la carte affichée.
 const gpsTopLeft = { lat: 43.64526958682147, lng: 3.8610944495057855 };
 const gpsBottomRight = { lat: 43.63856388483909, lng: 3.894421125886565 };
 const gpsTopRight = { lat: 43.64981194623201, lng: 3.8910884500021616 };
@@ -98,7 +98,7 @@ function handleDeviceOrientation(event) {
     } else if (typeof event.absolute === 'boolean' && event.absolute && typeof event.alpha === 'number') {
         // Android/Chrome
         heading = 360 - event.alpha;
-    } 
+    }
     if (heading !== null && !isNaN(heading)) {
         // Correction selon l'orientation de l'écran
         let orientation = 0;
@@ -146,17 +146,20 @@ function isPointInQuad(lat, lng) {
     return u >= -0.02 && u <= 1.02 && v >= -0.02 && v <= 1.02;
 }
 
-function showOutOfBoundsPanel(show, angleToCenter = 0) {
+function showOutOfBoundsPanel(show, angleToMapCenter = 0) {
     const panel = document.getElementById('out-of-bounds-panel');
     if (!panel) return;
     if (show) {
         panel.style.display = 'block';
-        // Tourner la flèche en tenant compte de la rotation de la carte ET de l'orientation du téléphone
+        // Tourner la flèche en tenant compte de l'orientation du téléphone
         const arrow = document.getElementById('direction-arrow');
         if (arrow) {
-            let correctedAngle = angleToCenter - MAP_ROTATION;
+            let correctedAngle = angleToMapCenter;
             if (hasDeviceOrientation) {
                 correctedAngle -= deviceHeading;
+            }
+            else {
+                correctedAngle -= lastGpsPosition.heading;
             }
             // Normaliser l'angle
             correctedAngle = ((correctedAngle % 360) + 360) % 360;
@@ -186,11 +189,11 @@ function handleViewportResize() {
     const currentHeight = window.innerHeight;
     //console.log(`Viewport height changed to ${currentHeight}`);
     lastViewportHeight = currentHeight;
-    
+
     // Laisser un peu de temps au navigateur pour appliquer les changements CSS
     requestAnimationFrame(() => {
         if (lastGpsPosition) {
-            showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+            showGpsDot();
         }
     });
 }
@@ -225,21 +228,24 @@ function haversine(lat1, lng1, lat2, lng2) {
     const toRad = x => x * Math.PI / 180;
     const dLat = toRad(lat2 - lat1);
     const dLng = toRad(lng2 - lng1);
-    const a = Math.sin(dLat/2)**2 +
-              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-              Math.sin(dLng/2)**2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
 }
 
-function showGpsDot(lat, lng, heading = null) {
-    lastGpsPosition = { lat, lng, heading };
+function showGpsDot() {
+    const lat = lastGpsPosition.lat;
+    const lng = lastGpsPosition.lng;
+    const heading = lastGpsPosition.heading;
 
     // Vérifier si hors zone
     const inZone = isPointInQuad(lat, lng);
     if (!inZone) {
         // Calculer l'angle vers le centre
         const angle = computeAngleToCenter(lat, lng);
+        console.log(`Hors zone : (${lat}, ${lng}) - Angle vers le centre : ${angle}°`);
         showOutOfBoundsPanel(true, angle);
         // Ne pas dessiner le point rouge ni la trace
         // Effacer le canvas
@@ -271,7 +277,7 @@ function showGpsDot(lat, lng, heading = null) {
 
     // Attendre que l'image soit chargée
     if (!img.complete) {
-        img.onload = () => showGpsDot(lat, lng);
+        img.onload = () => showGpsDot();
         return;
     }
 
@@ -463,20 +469,14 @@ function showGpsDot(lat, lng, heading = null) {
         function animatePulse() {
             window._gpsPulseAnim = false;
             if (lastGpsPosition) {
-                showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+                showGpsDot();
             }
         }
         requestAnimationFrame(animatePulse);
     }
 
-    //Forcer la direction à un angle fixe au besoin pour les tests
-    //heading = 0.0;
-
-    // headingHistory.push(30.0); // Ajouter une valeur fixe pour les tests
-    // headingHistory.push(45.0); // Ajouter une valeur fixe pour les tests
-    // headingHistory.push(60.0); // Ajouter une valeur fixe pour les tests
-    // headingHistory.push(40.0); // Ajouter une valeur fixe pour les tests
-    // headingHistory.push(42.0); // Ajouter une valeur fixe pour les tests
+    // Décommenter pour tester la fonction de dessin du cône de direction vers le nord
+    //drawDirectionCone(ctx, px.x, px.y, 0.0);
 
     // Mettre à jour l'historique des directions si on a une nouvelle valeur valide
     if (heading !== null && !isNaN(heading)) {
@@ -490,7 +490,7 @@ function showGpsDot(lat, lng, heading = null) {
     if (headingHistory.length === MAX_HEADING_HISTORY) {
         // Calculer la direction moyenne
         const avgHeading = calculateAverageHeading(headingHistory);
-        
+
         // Dessiner le cône de direction avec la direction moyenne
         drawDirectionCone(ctx, px.x, px.y, avgHeading);
     }
@@ -504,7 +504,7 @@ function drawDirectionCone(ctx, x, y, heading) {
     // Convertir l'angle en radians (heading est en degrés, 0° = Nord)
     // On soustrait 90° pour que 0° pointe vers le haut (Nord)
     // Et on soustrait la rotation de la carte pour compenser
-    const angleRad = (heading - 90 - MAP_ROTATION) * Math.PI / 180;
+    const angleRad = (heading - 90 - MAP_ORIENTATION) * Math.PI / 180;
 
     // Point de la pointe du cône
     const tipX = x + Math.cos(angleRad) * coneLength;
@@ -545,22 +545,28 @@ if (navigator.geolocation) {
             const { latitude, longitude } = pos.coords;
             const heading = pos.coords.heading; // Récupérer la direction
             lastPositionTimestamp = Date.now();
+            
+            lastGpsPosition = {
+                lat: latitude,
+                lng: longitude,
+                heading: hasDeviceOrientation ? deviceHeading : heading
+            };
             gpsWaitingNotificationUserHidden = false; // Réinitialiser le flag si on reçoit une position
             gpsSignalLost = false;
-            showGpsDot(latitude, longitude, heading);
+            showGpsDot();
         },
         err => {
             console.log(`Erreur de géolocalisation : ${err.code} - ${err.message}`);
         },
         { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
-    );    
+    );
 } else {
     console.log("La géolocalisation n'est pas supportée par ce navigateur.");
 }
 
 setInterval(() => {
     if (gpsWaitingNotificationUserHidden) return; // Ne pas afficher si l'utilisateur a masqué la notification
-    if (!lastPositionTimestamp || Date.now() - lastPositionTimestamp > GPS_TIMEOUT) {        
+    if (!lastPositionTimestamp || Date.now() - lastPositionTimestamp > GPS_TIMEOUT) {
         gpsSignalLost = true;
         showGpsWaitingNotification();
     } else {
@@ -586,19 +592,19 @@ const resizeObserver = new ResizeObserver((entries) => {
 resizeObserver.observe(document.documentElement);
 
 // Enregistrement des événements ici pour s'assurer que le DOM est prêt
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Gérer les changements de visibilité du document
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden && lastGpsPosition) {
             // Recalculer la position après un court délai quand la page redevient visible
             setTimeout(() => {
-                showGpsDot(lastGpsPosition.lat, lastGpsPosition.lng, lastGpsPosition.heading);
+                showGpsDot();
             }, 300);
         }
     });
 
     // Gestionnaire d'événements pour le bouton de masquage de la notification GPS
-    document.getElementById('gps-notif-hide').onclick = function() {
+    document.getElementById('gps-notif-hide').onclick = function () {
         hideGpsWaitingNotification();
         gpsWaitingNotificationUserHidden = true;
     };
@@ -627,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Ajoute le bouton avant la flèche
                 const arrowContainer = outPanel.querySelector('.arrow-container');
                 arrowContainer.insertBefore(restoreBtn, arrowContainer.firstChild);
-                restoreBtn.onclick = function() {
+                restoreBtn.onclick = function () {
                     outPanel.classList.remove('reduced');
                     restoreBtn.remove();
                 };
