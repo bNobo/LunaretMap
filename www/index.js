@@ -1,12 +1,12 @@
 // Enregistrement du service worker pour la mise en cache
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
+    navigator.serviceWorker.register('service-worker.js');
 }
 
 // Gestion du mode plein écran
 function toggleFullScreen() {
     const container = document.getElementById('map-container');
-    
+
     if (!document.fullscreenElement) {
         // Passer en plein écran
         if (container.requestFullscreen) {
@@ -98,7 +98,7 @@ function handleDeviceOrientation(event) {
     } else if (typeof event.absolute === 'boolean' && event.absolute && typeof event.alpha === 'number') {
         // Android/Chrome
         heading = 360 - event.alpha;
-    } 
+    }
     if (heading !== null && !isNaN(heading)) {
         // Correction selon l'orientation de l'écran
         let orientation = 0;
@@ -158,6 +158,9 @@ function showOutOfBoundsPanel(show, angleToMapCenter = 0) {
             if (hasDeviceOrientation) {
                 correctedAngle -= deviceHeading;
             }
+            else {
+                correctedAngle -= lastGpsPosition.heading;
+            }
             // Normaliser l'angle
             correctedAngle = ((correctedAngle % 360) + 360) % 360;
             arrow.style.transform = `rotate(${correctedAngle}deg)`;
@@ -186,7 +189,7 @@ function handleViewportResize() {
     const currentHeight = window.innerHeight;
     //console.log(`Viewport height changed to ${currentHeight}`);
     lastViewportHeight = currentHeight;
-    
+
     // Laisser un peu de temps au navigateur pour appliquer les changements CSS
     requestAnimationFrame(() => {
         if (lastGpsPosition) {
@@ -225,18 +228,18 @@ function haversine(lat1, lng1, lat2, lng2) {
     const toRad = x => x * Math.PI / 180;
     const dLat = toRad(lat2 - lat1);
     const dLng = toRad(lng2 - lng1);
-    const a = Math.sin(dLat/2)**2 +
-              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-              Math.sin(dLng/2)**2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
 }
 
-function showGpsDot() {   
+function showGpsDot() {
     const lat = lastGpsPosition.lat;
     const lng = lastGpsPosition.lng;
     const heading = lastGpsPosition.heading;
-    
+
     // Vérifier si hors zone
     const inZone = isPointInQuad(lat, lng);
     if (!inZone) {
@@ -487,7 +490,7 @@ function showGpsDot() {
     if (headingHistory.length === MAX_HEADING_HISTORY) {
         // Calculer la direction moyenne
         const avgHeading = calculateAverageHeading(headingHistory);
-        
+
         // Dessiner le cône de direction avec la direction moyenne
         drawDirectionCone(ctx, px.x, px.y, avgHeading);
     }
@@ -542,10 +545,11 @@ if (navigator.geolocation) {
             const { latitude, longitude } = pos.coords;
             const heading = pos.coords.heading; // Récupérer la direction
             lastPositionTimestamp = Date.now();
-            lastGpsPosition = { 
-                lat: latitude, 
-                lng: longitude, 
-                heading: hasDeviceOrientation ? deviceHeading : heading 
+            
+            lastGpsPosition = {
+                lat: latitude,
+                lng: longitude,
+                heading: hasDeviceOrientation ? deviceHeading : heading
             };
             gpsWaitingNotificationUserHidden = false; // Réinitialiser le flag si on reçoit une position
             gpsSignalLost = false;
@@ -555,14 +559,14 @@ if (navigator.geolocation) {
             console.log(`Erreur de géolocalisation : ${err.code} - ${err.message}`);
         },
         { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
-    );    
+    );
 } else {
     console.log("La géolocalisation n'est pas supportée par ce navigateur.");
 }
 
 setInterval(() => {
     if (gpsWaitingNotificationUserHidden) return; // Ne pas afficher si l'utilisateur a masqué la notification
-    if (!lastPositionTimestamp || Date.now() - lastPositionTimestamp > GPS_TIMEOUT) {        
+    if (!lastPositionTimestamp || Date.now() - lastPositionTimestamp > GPS_TIMEOUT) {
         gpsSignalLost = true;
         showGpsWaitingNotification();
     } else {
@@ -588,7 +592,7 @@ const resizeObserver = new ResizeObserver((entries) => {
 resizeObserver.observe(document.documentElement);
 
 // Enregistrement des événements ici pour s'assurer que le DOM est prêt
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Gérer les changements de visibilité du document
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden && lastGpsPosition) {
@@ -600,7 +604,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Gestionnaire d'événements pour le bouton de masquage de la notification GPS
-    document.getElementById('gps-notif-hide').onclick = function() {
+    document.getElementById('gps-notif-hide').onclick = function () {
         hideGpsWaitingNotification();
         gpsWaitingNotificationUserHidden = true;
     };
@@ -629,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Ajoute le bouton avant la flèche
                 const arrowContainer = outPanel.querySelector('.arrow-container');
                 arrowContainer.insertBefore(restoreBtn, arrowContainer.firstChild);
-                restoreBtn.onclick = function() {
+                restoreBtn.onclick = function () {
                     outPanel.classList.remove('reduced');
                     restoreBtn.remove();
                 };
