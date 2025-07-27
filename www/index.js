@@ -32,11 +32,18 @@ function toggleFullScreen() {
 // Coordonnées GPS des coins de la carte (à ajuster selon la carte réelle)
 
 const MAP_ORIENTATION = -11.8; // Orientation de la carte en degrés (positive = vers la droite). Il s'agit de l'angle entre le nord géographique et le haut de la carte affichée.
+// Coordonnées GPS des coins de l'image de la carte, afin de convertir les coordonnées GPS en pixels
 const gpsTopLeft = { lat: 43.64526958682147, lng: 3.8610944495057855 };
 const gpsBottomRight = { lat: 43.63856388483909, lng: 3.894421125886565 };
 const gpsTopRight = { lat: 43.64981194623201, lng: 3.8910884500021616 };
 const gpsBottomLeft = { lat: 43.63402734120482, lng: 3.8642750642904535 };
-const gpsZooEntrance = { lat: 43.63961875183096, lng: 3.8738389705166822 }; // Entrée du zoo, pour le calcul de l'angle
+ // Entrée du zoo, pour le calcul de l'angle entre le point GPS et l'entrée
+const gpsZooEntrance = { lat: 43.63961875183096, lng: 3.8738389705166822 };
+// Coordonnées GPS des coins du quadrilatère contenant le plan, afin de déterminer si l'utilisateur est dans la zone
+const gpsQuadTopLeft = { lat: 43.64484614468304, lng: 3.8694684859940205 };
+const gpsQuadTopRight = { lat: 43.64832077228283, lng: 3.8896410427623 };
+const gpsQuadBottomLeft = { lat: 43.63822532718278, lng: 3.8730294005741785 };
+const gpsQuadBottomRight = { lat: 43.64078400971517, lng: 3.8929925384548634 };
 
 // Nouvelle fonction de conversion GPS -> pixel utilisant les 4 coins (transformation bilinéaire)
 function gpsToPixel(lat, lng, imgWidth, imgHeight) {
@@ -125,12 +132,12 @@ function isPointInQuad(lat, lng) {
         const EPS = 1e-6;
         let u = 0.5, v = 0.5;
         for (let iter = 0; iter < 10; iter++) {
-            const lat_ = (1 - u) * (1 - v) * gpsTopLeft.lat + u * (1 - v) * gpsTopRight.lat + (1 - u) * v * gpsBottomLeft.lat + u * v * gpsBottomRight.lat;
-            const lng_ = (1 - u) * (1 - v) * gpsTopLeft.lng + u * (1 - v) * gpsTopRight.lng + (1 - u) * v * gpsBottomLeft.lng + u * v * gpsBottomRight.lng;
-            const dlat_du = (1 - v) * (gpsTopRight.lat - gpsTopLeft.lat) + v * (gpsBottomRight.lat - gpsBottomLeft.lat);
-            const dlat_dv = (1 - u) * (gpsBottomLeft.lat - gpsTopLeft.lat) + u * (gpsBottomRight.lat - gpsTopRight.lat);
-            const dlng_du = (1 - v) * (gpsTopRight.lng - gpsTopLeft.lng) + v * (gpsBottomRight.lng - gpsBottomLeft.lng);
-            const dlng_dv = (1 - u) * (gpsBottomLeft.lng - gpsTopLeft.lng) + u * (gpsBottomRight.lng - gpsTopRight.lng);
+            const lat_ = (1 - u) * (1 - v) * gpsQuadTopLeft.lat + u * (1 - v) * gpsQuadTopRight.lat + (1 - u) * v * gpsQuadBottomLeft.lat + u * v * gpsQuadBottomRight.lat;
+            const lng_ = (1 - u) * (1 - v) * gpsQuadTopLeft.lng + u * (1 - v) * gpsQuadTopRight.lng + (1 - u) * v * gpsQuadBottomLeft.lng + u * v * gpsQuadBottomRight.lng;
+            const dlat_du = (1 - v) * (gpsQuadTopRight.lat - gpsQuadTopLeft.lat) + v * (gpsQuadBottomRight.lat - gpsQuadBottomLeft.lat);
+            const dlat_dv = (1 - u) * (gpsQuadBottomLeft.lat - gpsQuadTopLeft.lat) + u * (gpsQuadBottomRight.lat - gpsQuadTopRight.lat);
+            const dlng_du = (1 - v) * (gpsQuadTopRight.lng - gpsQuadTopLeft.lng) + v * (gpsQuadBottomRight.lng - gpsQuadBottomLeft.lng);
+            const dlng_dv = (1 - u) * (gpsQuadBottomLeft.lng - gpsQuadTopLeft.lng) + u * (gpsQuadBottomRight.lng - gpsQuadTopRight.lng);
             const det = dlat_du * dlng_dv - dlat_dv * dlng_du;
             if (Math.abs(det) < 1e-12) break;
             const du = ((lat - lat_) * dlng_dv - (lng - lng_) * dlat_dv) / det;
