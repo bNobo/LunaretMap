@@ -36,6 +36,7 @@ const gpsTopLeft = { lat: 43.64526958682147, lng: 3.8610944495057855 };
 const gpsBottomRight = { lat: 43.63856388483909, lng: 3.894421125886565 };
 const gpsTopRight = { lat: 43.64981194623201, lng: 3.8910884500021616 };
 const gpsBottomLeft = { lat: 43.63402734120482, lng: 3.8642750642904535 };
+const gpsZooEntrance = { lat: 43.63961875183096, lng: 3.8738389705166822 }; // Entrée du zoo, pour le calcul de l'angle
 
 // Nouvelle fonction de conversion GPS -> pixel utilisant les 4 coins (transformation bilinéaire)
 function gpsToPixel(lat, lng, imgWidth, imgHeight) {
@@ -170,13 +171,13 @@ function showOutOfBoundsPanel(show, angleToMapCenter = 0) {
     }
 }
 
-function computeAngleToCenter(lat, lng) {
-    // Centre du parc (moyenne des coins)
-    const centerLat = (gpsTopLeft.lat + gpsTopRight.lat + gpsBottomLeft.lat + gpsBottomRight.lat) / 4;
-    const centerLng = (gpsTopLeft.lng + gpsTopRight.lng + gpsBottomLeft.lng + gpsBottomRight.lng) / 4;
-    // Angle du point vers le centre (en degrés, 0 = nord)
-    const dLat = centerLat - lat;
-    const dLng = centerLng - lng;
+function computeAngleToEntrance(lat, lng) {
+    // Entrée du zoo
+    const entranceLat = gpsZooEntrance.lat;
+    const entranceLng = gpsZooEntrance.lng;
+    // Angle du point vers l'entrée (en degrés, 0 = nord)
+    const dLat = entranceLat - lat;
+    const dLng = entranceLng - lng;
     const angleRad = Math.atan2(dLng, dLat); // y = nord, x = est
     let angleDeg = angleRad * 180 / Math.PI;
     angleDeg = (angleDeg + 360) % 360;
@@ -244,7 +245,7 @@ function showGpsDot() {
     const inZone = isPointInQuad(lat, lng);
     if (!inZone) {
         // Calculer l'angle vers le centre
-        const angle = computeAngleToCenter(lat, lng);
+        const angle = computeAngleToEntrance(lat, lng);
         console.log(`Hors zone : (${lat}, ${lng}) - Angle vers le centre : ${angle}°`);
         showOutOfBoundsPanel(true, angle);
         // Ne pas dessiner le point rouge ni la trace
