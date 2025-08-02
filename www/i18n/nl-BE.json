@@ -1,0 +1,5 @@
+{
+  "expand": "Vergroten",
+  "geolocation_error": "Geolocatiefout: {code} - {message}",
+  "geolocation_unsupported": "Geolocatie wordt niet ondersteund door deze browser."
+}

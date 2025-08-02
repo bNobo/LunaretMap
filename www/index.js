@@ -1,7 +1,56 @@
 // Enregistrement du service worker pour la mise en cache
+const pathPrefix = window.location.pathname.split('/').filter(Boolean).length > 1 ? '../' : './';
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js');
+    navigator.serviceWorker.register(`${pathPrefix}service-worker.js`);
 }
+
+let translations = {};
+
+function t(key, vars = {}) {
+    let str = translations[key] || key;
+    return str.replace(/\{(\w+)\}/g, (_, v) => (vars[v] !== undefined ? vars[v] : ''));
+}
+
+async function loadTranslations() {
+    const lang = document.documentElement.lang || 'fr';
+    try {
+        const res = await fetch(`${pathPrefix}i18n/${lang}.json`);
+        translations = await res.json();
+    } catch (e) {
+        console.error('Translation load error', e);
+    }
+}
+
+const translationsLoaded = loadTranslations();
+
+function initGeolocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+            pos => {
+                const { latitude, longitude } = pos.coords;
+                const heading = pos.coords.heading; // Récupérer la direction
+                lastPositionTimestamp = Date.now();
+
+                lastGpsPosition = {
+                    lat: latitude,
+                    lng: longitude,
+                    heading: hasDeviceOrientation ? deviceHeading : heading
+                };
+                gpsWaitingNotificationUserHidden = false; // Réinitialiser le flag si on reçoit une position
+                gpsSignalLost = false;
+                showGpsDot();
+            },
+            err => {
+                console.log(t('geolocation_error', { code: err.code, message: err.message }));
+            },
+            { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
+        );
+    } else {
+        console.log(t('geolocation_unsupported'));
+    }
+}
+
+translationsLoaded.then(initGeolocation);
 
 // Gestion du mode plein écran
 function toggleFullScreen() {
@@ -547,31 +596,6 @@ let lastPositionTimestamp = null;
 const GPS_TIMEOUT = 10000; // 10 secondes sans nouvelle position = signal perdu
 let gpsWaitingNotificationUserHidden = false;
 
-if (navigator.geolocation) {
-    navigator.geolocation.watchPosition(
-        pos => {
-            const { latitude, longitude } = pos.coords;
-            const heading = pos.coords.heading; // Récupérer la direction
-            lastPositionTimestamp = Date.now();
-            
-            lastGpsPosition = {
-                lat: latitude,
-                lng: longitude,
-                heading: hasDeviceOrientation ? deviceHeading : heading
-            };
-            gpsWaitingNotificationUserHidden = false; // Réinitialiser le flag si on reçoit une position
-            gpsSignalLost = false;
-            showGpsDot();
-        },
-        err => {
-            console.log(`Erreur de géolocalisation : ${err.code} - ${err.message}`);
-        },
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
-    );
-} else {
-    console.log("La géolocalisation n'est pas supportée par ce navigateur.");
-}
-
 setInterval(() => {
     if (gpsWaitingNotificationUserHidden) return; // Ne pas afficher si l'utilisateur a masqué la notification
     if (!lastPositionTimestamp || Date.now() - lastPositionTimestamp > GPS_TIMEOUT) {
@@ -600,7 +624,8 @@ const resizeObserver = new ResizeObserver((entries) => {
 resizeObserver.observe(document.documentElement);
 
 // Enregistrement des événements ici pour s'assurer que le DOM est prêt
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    await translationsLoaded;
     // Gérer les changements de visibilité du document
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden && lastGpsPosition) {
@@ -632,8 +657,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const restoreBtn = document.createElement('button');
                 restoreBtn.className = 'panel-restore-btn';
                 restoreBtn.id = 'out-of-bounds-restore-btn';
-                restoreBtn.title = "Agrandir";
-                restoreBtn.ariaLabel = "Agrandir";
+                restoreBtn.title = t('expand');
+                restoreBtn.ariaLabel = t('expand');
                 restoreBtn.innerHTML = `
 <svg width="38" height="38" viewBox="0 0 24 24">
   <path fill="#000000" d="M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>

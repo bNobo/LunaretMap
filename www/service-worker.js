@@ -1,9 +1,15 @@
-const CACHE_NAME = 'lunaretmap-cache-v2';
+const CACHE_NAME = 'lunaretmap-cache-v4';
 const urlsToCache = [
-  '',
   'index.html',
+  'en/index.html',
+  'es/index.html',
+  'nl-be/index.html',
   'index.js',
   'styles.css',
+  'i18n/fr.json',
+  'i18n/en.json',
+  'i18n/es.json',
+  'i18n/nl-BE.json',
 ];
 
 self.addEventListener('install', event => {

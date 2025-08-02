@@ -5,16 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Plan interactif du Zoo du Lunaret avec géolocalisation en temps réel. Explorez le zoo et trouvez votre chemin facilement.">
   <title>Plan interactif du Zoo du Lunaret</title>
+  <script>
+    (function() {
+      var lang = (navigator.language || '').toLowerCase();
+      if (lang.startsWith('en')) location.replace('en/index.html');
+      else if (lang.startsWith('es')) location.replace('es/index.html');
+      else if (lang.startsWith('nl')) location.replace('nl-be/index.html');
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="alternate" hreflang="fr" href="./index.html">
+  <link rel="alternate" hreflang="en" href="en/index.html">
+  <link rel="alternate" hreflang="es" href="es/index.html">
+  <link rel="alternate" hreflang="nl-BE" href="nl-be/index.html">
 </head>
 <body>
   <div id="map-container">
     <img id="carte" src="img/plan.webp" alt="Carte du Zoo du Lunaret" class="fullscreen-img">
-    <canvas id="trail-canvas"></canvas>    
+    <canvas id="trail-canvas"></canvas>
   </div>
-  <div id="out-of-bounds-panel">    
+  <div id="out-of-bounds-panel">
     <div class="panel-content">
       <div class="panel-text">Vous êtes en dehors du parc, suivez la flèche</div>
       <div class="arrow-container">

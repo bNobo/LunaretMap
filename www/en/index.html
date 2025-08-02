@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive map of Lunaret Zoo with real-time geolocation. Explore the zoo and find your way easily.">
+  <title>Interactive map of Lunaret Zoo</title>
+  <link rel="stylesheet" href="../styles.css?v=5">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="alternate" hreflang="fr" href="../index.html">
+  <link rel="alternate" hreflang="en" href="./index.html">
+  <link rel="alternate" hreflang="es" href="../es/index.html">
+  <link rel="alternate" hreflang="nl-BE" href="../nl-be/index.html">
+</head>
+<body>
+  <div id="map-container">
+    <img id="carte" src="../img/plan.webp" alt="Map of Lunaret Zoo" class="fullscreen-img">
+    <canvas id="trail-canvas"></canvas>    
+  </div>
+  <div id="out-of-bounds-panel">    
+    <div class="panel-content">
+      <div class="panel-text">You are outside the park, follow the arrow</div>
+      <div class="arrow-container">
+        <svg id="direction-arrow" width="60" height="60" viewBox="0 0 60 60">
+          <polygon points="30,8 40,38 30,32 20,38" fill="#007bff" stroke="#333" stroke-width="2" />
+        </svg>
+      </div>
+    </div>
+    <button class="panel-hide-btn" id="out-of-bounds-hide-btn" aria-label="Minimize panel" title="Minimize">
+      <svg width="38" height="38" viewBox="0 0 24 24">
+        <path fill="#000000" d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+      </svg>
+    </button>
+  </div>
+  <button id="fullscreen-btn" aria-label="Fullscreen">
+    <svg viewBox="0 0 24 24" width="24" height="24">
+      <path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+    </svg>
+  </button>
+  <div id="gps-waiting-notification">
+    <button class="hide-btn" id="gps-notif-hide" title="Hide notification">Hide</button>
+      Waiting for GPS signal…
+  </div>
+</body>
+<script src="../index.js?v=7"></script>
+</html>
