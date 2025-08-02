@@ -1,0 +1,5 @@
+{
+  "expand": "Ampliar",
+  "geolocation_error": "Error de geolocalización: {code} - {message}",
+  "geolocation_unsupported": "La geolocalización no es compatible con este navegador."
+}
